@@ -3,40 +3,26 @@
 
 #include <glad/glad.h>
 
-#include <fstream>
-#include <iostream>
-#include <iterator>
-#include <stdexcept>
+#include <memory>
 #include <string>
 
-std::string readFileToString(const std::string &filename) {
-  // Open the file for reading. Use std::ios_base::binary for binary files
-  std::ifstream ifs(filename, std::ios_base::in);
+std::string readFileToString(const std::string &filename);
 
-  if (!ifs.is_open()) {
-    throw std::runtime_error("Failed to open file: " + filename);
-  }
+class Shader {
+public:
+  unsigned int _m_id;
 
-  // Use string constructor with stream iterators to read the whole file
-  std::string content(std::istreambuf_iterator<char>(ifs),
-                      std::istreambuf_iterator<char>());
-
-  // Optional: Check for read errors (excluding eof, which is expected)
-  if (!ifs && !ifs.eof()) {
-    throw std::runtime_error("Failed to read file: " + filename);
-  }
-
-  return content;
-}
-
-class Shader {};
+  void use();
+  Shader(unsigned int id);
+  ~Shader();
+};
 
 class ShaderBuilder {
 public:
-  std::string vertex_src;
-  std::string fragment_src;
+  std::string _m_vertex_src;
+  std::string _m_fragment_src;
 
-  Shader build();
+  std::unique_ptr<Shader> build();
 
 private:
 };

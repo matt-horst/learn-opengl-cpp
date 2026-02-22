@@ -1,17 +1,22 @@
 [
   {
+    "file": "/home/matt/code/learn-opengl-cpp/src/main.cpp",
     "arguments": [
-      "/usr/bin/c++",
-      "-I/home/matt/code/learn_opengl_cpp/include",
-      "-I/home/matt/code/learn_opengl_cpp/build/_deps/glm-src",
+      "c++",
+      "-I/home/matt/code/learn-opengl-cpp/include",
+      "-I/home/matt/code/learn-opengl-cpp/build/_deps/glm-src",
       "-std=c++20",
-      "-c",
+      "-MD",
+      "-MT",
+      "CMakeFiles/LearnOpenGL.dir/src/main.cpp.o",
+      "-MF",
+      "CMakeFiles/LearnOpenGL.dir/src/main.cpp.o.d",
       "-o",
       "CMakeFiles/LearnOpenGL.dir/src/main.cpp.o",
-      "/home/matt/code/learn_opengl_cpp/src/main.cpp"
+      "-c",
+      "/home/matt/code/learn-opengl-cpp/src/main.cpp"
     ],
-    "directory": "/home/matt/code/learn_opengl_cpp/build",
-    "file": "/home/matt/code/learn_opengl_cpp/src/main.cpp",
-    "output": "/home/matt/code/learn_opengl_cpp/build/CMakeFiles/LearnOpenGL.dir/src/main.cpp.o"
+    "directory": "/home/matt/code/learn-opengl-cpp/build",
+    "output": "CMakeFiles/LearnOpenGL.dir/src/main.cpp.o"
   }
 ]

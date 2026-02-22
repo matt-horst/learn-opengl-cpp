@@ -19,7 +19,10 @@ find_package(glfw3 REQUIRED)
 
 add_executable(LearnOpenGL)
 
-target_sources(LearnOpenGL PRIVATE src/main.cpp vendor/glad/glad.c)
+file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
+file(GLOB_RECURSE VENDOR_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/vendor/*/*.c")
+
+target_sources(LearnOpenGL PRIVATE ${PROJECT_SOURCES} ${VENDOR_SOURCES})
 
 target_include_directories(LearnOpenGL PRIVATE include)
 target_link_libraries(LearnOpenGL PRIVATE glfw)

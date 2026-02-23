@@ -8,7 +8,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
-#include <glm/vec3.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <cstdio>
 #include <cstdlib>
@@ -18,6 +20,7 @@
 void framebuffer_size_callback(GLFWwindow *, int, int);
 
 int main(void) {
+
   if (!glfwInit()) {
     const char *msg = nullptr;
     glfwGetError(&msg);
@@ -145,8 +148,8 @@ int main(void) {
                   GL_LINEAR_MIPMAP_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   // load image, create texture and generate mipmaps
-  data =
-      stbi_load("res/textures/awesomeface.png", &width, &height, &nrChannels, 0);
+  data = stbi_load("res/textures/awesomeface.png", &width, &height, &nrChannels,
+                   0);
   if (data) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, data);
@@ -162,6 +165,23 @@ int main(void) {
   glUniform1i(glGetUniformLocation(shader->_m_id, "tex2"), 1);
 
   while (!glfwWindowShouldClose(window)) {
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+
+    const glm::mat4 model = glm::rotate(glm::mat4(1.0f), glm::radians(-55.0f),
+                                        glm::vec3(1.0f, 0.0f, 0.0f));
+    const glm::mat4 view =
+        glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+
+    const glm::mat4 projection = glm::perspective(
+        glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
+    glUniformMatrix4fv(glGetUniformLocation(shader->_m_id, "model"), 1,
+                       GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(glGetUniformLocation(shader->_m_id, "view"), 1, GL_FALSE,
+                       glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(shader->_m_id, "projection"), 1,
+                       GL_FALSE, glm::value_ptr(projection));
+
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
       glfwSetWindowShouldClose(window, GLFW_TRUE);
     }

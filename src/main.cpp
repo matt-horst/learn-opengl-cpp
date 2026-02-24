@@ -23,6 +23,7 @@
 void framebuffer_size_callback(GLFWwindow *, int, int);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+unsigned int load_texture(const std::string &path);
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
@@ -78,48 +79,42 @@ int main(void) {
   }
 
   float vertices[] = {
-      -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, //
-      0.5f,  -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, //
-      0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, //
-      0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, //
-      -0.5f, 0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, //
-      -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, //
+      // positions          // normals           // texture coords
+      -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f,  0.0f,  0.5f,  -0.5f,
+      -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f,  0.0f,  0.5f,  0.5f,  -0.5f, 0.0f,
+      0.0f,  -1.0f, 1.0f,  1.0f,  0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f,
+      1.0f,  1.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f,  1.0f,
+      -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f,  0.0f,
 
-      -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f, //
-      0.5f,  -0.5f, 0.5f,  0.0f,  0.0f,  1.0f, //
-      0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, //
-      0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, //
-      -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  1.0f, //
-      -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f, //
+      -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.5f,  -0.5f,
+      0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  0.0f,
+      0.0f,  1.0f,  1.0f,  1.0f,  0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+      1.0f,  1.0f,  -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+      -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 
-      -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f, //
-      -0.5f, 0.5f,  -0.5f, -1.0f, 0.0f,  0.0f, //
-      -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f, //
-      -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f, //
-      -0.5f, -0.5f, 0.5f,  -1.0f, 0.0f,  0.0f, //
-      -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f, //
+      -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.0f,  -0.5f, 0.5f,
+      -0.5f, -1.0f, 0.0f,  0.0f,  1.0f,  1.0f,  -0.5f, -0.5f, -0.5f, -1.0f,
+      0.0f,  0.0f,  0.0f,  1.0f,  -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,
+      0.0f,  1.0f,  -0.5f, -0.5f, 0.5f,  -1.0f, 0.0f,  0.0f,  0.0f,  0.0f,
+      -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.0f,
 
-      0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, //
-      0.5f,  0.5f,  -0.5f, 1.0f,  0.0f,  0.0f, //
-      0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f, //
-      0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f, //
-      0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f, //
-      0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, //
+      0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.5f,  0.5f,
+      -0.5f, 1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  0.5f,  -0.5f, -0.5f, 1.0f,
+      0.0f,  0.0f,  0.0f,  1.0f,  0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,
+      0.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+      0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-      -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f, //
-      0.5f,  -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f, //
-      0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f, //
-      0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f, //
-      -0.5f, -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f, //
-      -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f, //
+      -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.5f,  -0.5f,
+      -0.5f, 0.0f,  -1.0f, 0.0f,  1.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  0.0f,
+      -1.0f, 0.0f,  1.0f,  0.0f,  0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,
+      1.0f,  0.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  0.0f,  0.0f,
+      -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f,  1.0f,
 
-      -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f, //
-      0.5f,  0.5f,  -0.5f, 0.0f,  1.0f,  0.0f, //
-      0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, //
-      0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, //
-      -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f, //
-      -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f  //
-  };
+      -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.5f,  0.5f,
+      -0.5f, 0.0f,  1.0f,  0.0f,  1.0f,  1.0f,  0.5f,  0.5f,  0.5f,  0.0f,
+      1.0f,  0.0f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+      1.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+      -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f};
   unsigned int VBO, VAO;
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);
@@ -130,13 +125,27 @@ int main(void) {
   glBindVertexArray(VAO);
 
   // position attribute
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
 
   // normal attribute
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
                         (void *)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
+
+  // texture attribute
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+                        (void *)(6 * sizeof(float)));
+  glEnableVertexAttribArray(2);
+
+  unsigned int diffuse_map, specular_map;
+  try {
+    diffuse_map = load_texture("res/textures/container2.png");
+    specular_map = load_texture("res/textures/container2_specular.png");
+  } catch (const std::runtime_error &e) {
+    std::cerr << e.what();
+    return EXIT_FAILURE;
+  }
 
   unsigned int lightVAO;
   glGenVertexArrays(1, &lightVAO);
@@ -144,7 +153,7 @@ int main(void) {
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
 
   glm::vec3 light_pos(1.2f, 1.0f, 2.0f);
@@ -156,6 +165,10 @@ int main(void) {
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   glfwSetCursorPosCallback(window, mouse_callback);
   glfwSetScrollCallback(window, scroll_callback);
+
+  shader->use();
+  shader->set_i("material.diffuse", 0);
+  shader->set_i("material.specular", 1);
 
   while (!glfwWindowShouldClose(window)) {
     const float current_frame = glfwGetTime();
@@ -222,21 +235,21 @@ int main(void) {
       shader->set_vec3("viewPos", camera.m_position);
 
       // Light properties
-      const glm::vec3 light_color(static_cast<float>(sin(glfwGetTime()) * 2.0),
-                                  static_cast<float>(sin(glfwGetTime() * 0.7)),
-                                  static_cast<float>(sin(glfwGetTime() * 1.3)));
-      const glm::vec3 diffuse_color = light_color * glm::vec3(0.5f);
-      const glm::vec3 ambient_color = light_color * glm::vec3(0.2f);
-      shader->set_vec3("light.ambient", ambient_color);
-      shader->set_vec3("light.diffuse", diffuse_color);
+      shader->set_vec3("light.ambient", 0.2f, 0.2f, 0.2f);
+      shader->set_vec3("light.diffuse", 0.5f, 0.5f, 0.5f);
       shader->set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
       shader->set_vec3("light.position", light_pos);
 
       // Material properties
-      shader->set_vec3("material.ambient", 1.0f, 0.5f, 0.31f);
-      shader->set_vec3("material.diffuse", 1.0f, 0.5f, 0.31f);
-      shader->set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
-      shader->set_f("material.shininess", 32.0f);
+      shader->set_i("material.diffuse", 0);
+      shader->set_i("material.specular", 1);
+      shader->set_f("material.shininess", 64.0f);
+
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, diffuse_map);
+
+      glActiveTexture(GL_TEXTURE1);
+      glBindTexture(GL_TEXTURE_2D, specular_map);
 
       glBindVertexArray(VAO);
       glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -278,4 +291,42 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
   camera.zoom(yoffset);
+}
+
+unsigned int load_texture(const std::string &path) {
+  unsigned int id;
+  glGenTextures(1, &id);
+
+  int width, height, k;
+  unsigned char *data = stbi_load(path.c_str(), &width, &height, &k, 0);
+
+  if (data == NULL) {
+    throw std::runtime_error("couldn't load image file: " + path);
+  }
+
+  GLenum format;
+  if (k == 1) {
+    format = GL_RED;
+  } else if (k == 3) {
+    format = GL_RGB;
+  } else if (k == 4) {
+    format = GL_RGBA;
+  } else {
+    throw std::runtime_error("Unable to infer texture format");
+  }
+
+  glBindTexture(GL_TEXTURE_2D, id);
+  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
+               GL_UNSIGNED_BYTE, data);
+  glGenerateMipmap(GL_TEXTURE_2D);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                  GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  stbi_image_free(data);
+
+  return id;
 }

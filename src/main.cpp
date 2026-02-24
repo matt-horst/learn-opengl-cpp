@@ -15,13 +15,14 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include "camera.hpp"
 #include "shader.hpp"
 
 void framebuffer_size_callback(GLFWwindow *, int, int);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
-float yaw, pitch, fov = 45.0f;
+Camera camera;
 
 int main(void) {
 
@@ -185,10 +186,6 @@ int main(void) {
       glm::vec3(1.3f, -2.0f, -2.5f),  glm::vec3(1.5f, 2.0f, -2.5f),
       glm::vec3(1.5f, 0.2f, -1.5f),   glm::vec3(-1.3f, 1.0f, -1.5f)};
 
-  glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
-  glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
-  glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
-
   float last_frame = 0.0f;
 
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -207,20 +204,22 @@ int main(void) {
       glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 
-    const float camera_speed = 2.5f * delta_time;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-      camera_pos += camera_speed * camera_front;
+        camera.pan(PanMovement::FORWARD, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-      camera_pos -= camera_speed * camera_front;
+        camera.pan(PanMovement::BACK, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-      camera_pos +=
-          camera_speed * glm::normalize(glm::cross(camera_front, camera_up));
+        camera.pan(PanMovement::RIGHT, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-      camera_pos -=
-          camera_speed * glm::normalize(glm::cross(camera_front, camera_up));
+        camera.pan(PanMovement::LEFT, delta_time);
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        camera.m_panning_speed = DEFAULT_PANNING_SPEED * 2.0;
+    } else {
+        camera.m_panning_speed = DEFAULT_PANNING_SPEED;
     }
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -240,16 +239,11 @@ int main(void) {
           glm::rotate(glm::translate(glm::mat4(1.0f), cube_positions[i]),
                       glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
 
-      const glm::vec3 direction =
-          glm::vec3(cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
-                    sin(glm::radians(pitch)),
-                    sin(glm::radians(yaw) * cos(glm::radians(pitch))));
-      camera_front = glm::normalize(direction);
-      const glm::mat4 view = glm::lookAt(camera_pos, camera_front + camera_pos,
-                                         glm::vec3(0.0f, 1.0f, 0.0f));
+      const glm::mat4 view = camera.get_view_matrix();
 
-      const glm::mat4 projection = glm::perspective(
-          glm::radians(fov), (float)width / (float)height, 0.1f, 100.0f);
+      const glm::mat4 projection =
+          glm::perspective(glm::radians(camera.m_zoom),
+                           (float)width / (float)height, 0.1f, 100.0f);
       glUniformMatrix4fv(glGetUniformLocation(shader->_m_id, "model"), 1,
                          GL_FALSE, glm::value_ptr(model));
       glUniformMatrix4fv(glGetUniformLocation(shader->_m_id, "view"), 1,
@@ -280,9 +274,9 @@ float lastX = 400.0f, lastY = 300.0f;
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   static bool first_mouse = true;
   if (first_mouse) {
-      lastX = xpos;
-      lastY = ypos;
-      first_mouse = false;
+    lastX = xpos;
+    lastY = ypos;
+    first_mouse = false;
   }
   float xoffset = xpos - lastX;
   float yoffset = lastY - ypos;
@@ -290,27 +284,9 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   lastX = xpos;
   lastY = ypos;
 
-  const float sensitivity = 0.1;
-  xoffset *= sensitivity;
-  yoffset *= sensitivity;
-
-  yaw += xoffset;
-  pitch += yoffset;
-
-  if (pitch > 89.0f) {
-    pitch = 89.0f;
-  }
-  if (pitch < -89.0f) {
-    pitch = -89.0f;
-  }
+  camera.rotate(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-    fov -= (float) yoffset;
-    if (fov < 1.0f) {
-        fov = 1.0f;
-    }
-    if (fov > 45.0f) {
-        fov = 45.0f;
-    }
+  camera.zoom(yoffset);
 }

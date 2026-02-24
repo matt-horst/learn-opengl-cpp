@@ -25,7 +25,6 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 Camera camera;
 
 int main(void) {
-
   if (!glfwInit()) {
     const char *msg = nullptr;
     glfwGetError(&msg);
@@ -54,18 +53,23 @@ int main(void) {
     return EXIT_FAILURE;
   }
 
-  ShaderBuilder sb;
+  ShaderBuilder sb, sb_light;
   try {
     sb._m_vertex_src = readFileToString("res/shaders/vertex.glsl");
     sb._m_fragment_src = readFileToString("res/shaders/fragment.glsl");
+
+    sb_light._m_fragment_src =
+        readFileToString("res/shaders/fragment_light.glsl");
+    sb_light._m_vertex_src = sb._m_vertex_src;
   } catch (const std::runtime_error &e) {
     std::cerr << e.what();
     return EXIT_FAILURE;
   }
 
-  std::unique_ptr<Shader> shader;
+  std::unique_ptr<Shader> shader, light_shader;
   try {
     shader = sb.build();
+    light_shader = sb_light.build();
   } catch (const std::runtime_error &e) {
     std::cerr << e.what();
     return EXIT_FAILURE;
@@ -107,75 +111,22 @@ int main(void) {
   // position attribute
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
-  // color attribute
-  // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-  //                       (void *)(3 * sizeof(float)));
-  // glEnableVertexAttribArray(1);
-  // texture coord attribute
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                        (void *)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
 
-  // load and create a texture
-  // -------------------------
-  unsigned int tex1;
-  glGenTextures(1, &tex1);
-  glBindTexture(GL_TEXTURE_2D,
-                tex1); // all upcoming GL_TEXTURE_2D operations now have
-                       // effect on this texture object
-  // set the texture wrapping parameters
-  glTexParameteri(
-      GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-      GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  // set texture filtering parameters
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                  GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  // load image, create texture and generate mipmaps
-  int width, height, nrChannels;
-  stbi_set_flip_vertically_on_load(true);
-  unsigned char *data =
-      stbi_load("res/textures/container.jpg", &width, &height, &nrChannels, 0);
-  if (data) {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-                 GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  } else {
-    std::cout << "Failed to load texture" << std::endl;
-  }
-  stbi_image_free(data);
-
-  unsigned int tex2;
-  glGenTextures(1, &tex2);
-  glBindTexture(GL_TEXTURE_2D,
-                tex2); // all upcoming GL_TEXTURE_2D operations now have
-                       // effect on this texture object
-  // set the texture wrapping parameters
-  glTexParameteri(
-      GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-      GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  // set texture filtering parameters
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                  GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  // load image, create texture and generate mipmaps
-  data = stbi_load("res/textures/awesomeface.png", &width, &height, &nrChannels,
-                   0);
-  if (data) {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  } else {
-    std::cout << "Failed to load texture" << std::endl;
-  }
-  stbi_image_free(data);
+  unsigned int lightVAO;
+  glGenVertexArrays(1, &lightVAO);
+  glBindVertexArray(lightVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+  glEnableVertexAttribArray(0);
 
   shader->use();
 
-  glUniform1i(glGetUniformLocation(shader->_m_id, "tex1"), 0);
-  glUniform1i(glGetUniformLocation(shader->_m_id, "tex2"), 1);
+  glUniform3f(glGetUniformLocation(shader->_m_id, "objectColor"), 1.0f, 0.5f,
+              0.31f);
+  glUniform3f(glGetUniformLocation(shader->_m_id, "lightColor"), 1.0f, 1.0f,
+              1.0f);
+
+  glm::vec3 light_pos(1.2f, 1.0f, 2.0f);
 
   glEnable(GL_DEPTH_TEST);
 
@@ -205,51 +156,67 @@ int main(void) {
     }
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        camera.pan(PanMovement::FORWARD, delta_time);
+      camera.pan(PanMovement::FORWARD, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        camera.pan(PanMovement::BACK, delta_time);
+      camera.pan(PanMovement::BACK, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        camera.pan(PanMovement::RIGHT, delta_time);
+      camera.pan(PanMovement::RIGHT, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        camera.pan(PanMovement::LEFT, delta_time);
+      camera.pan(PanMovement::LEFT, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-        camera.m_panning_speed = DEFAULT_PANNING_SPEED * 2.0;
+      camera.m_panning_speed = DEFAULT_PANNING_SPEED * 2.0;
     } else {
-        camera.m_panning_speed = DEFAULT_PANNING_SPEED;
+      camera.m_panning_speed = DEFAULT_PANNING_SPEED;
     }
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex1);
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, tex2);
-
     shader->use();
     glBindVertexArray(VAO);
 
-    for (unsigned int i = 0; i < 10; i++) {
-      const glm::mat4 model =
-          glm::rotate(glm::translate(glm::mat4(1.0f), cube_positions[i]),
-                      glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
+    const glm::mat4 view = camera.get_view_matrix();
+    const glm::mat4 projection =
+        glm::perspective(glm::radians(camera.m_zoom),
+                         (float)width / (float)height, 0.1f, 100.0f);
 
-      const glm::mat4 view = camera.get_view_matrix();
 
-      const glm::mat4 projection =
-          glm::perspective(glm::radians(camera.m_zoom),
-                           (float)width / (float)height, 0.1f, 100.0f);
+    // Light source
+    {
+      light_shader->use();
+
+      const glm::mat4 model = glm::scale(
+          glm::translate(glm::mat4(1.0f), light_pos), glm::vec3(0.2f));
+
+      glUniformMatrix4fv(glGetUniformLocation(light_shader->_m_id, "model"), 1,
+                         GL_FALSE, glm::value_ptr(model));
+      glUniformMatrix4fv(glGetUniformLocation(light_shader->_m_id, "view"), 1, GL_FALSE,
+              glm::value_ptr(view));
+      glUniformMatrix4fv(glGetUniformLocation(light_shader->_m_id, "projection"), 1,
+              GL_FALSE, glm::value_ptr(projection));
+
+      glBindVertexArray(lightVAO);
+      glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
+
+    // Cube
+    {
+      shader->use();
+
+      const glm::mat4 model(1.0f);
+
       glUniformMatrix4fv(glGetUniformLocation(shader->_m_id, "model"), 1,
                          GL_FALSE, glm::value_ptr(model));
-      glUniformMatrix4fv(glGetUniformLocation(shader->_m_id, "view"), 1,
-                         GL_FALSE, glm::value_ptr(view));
+      glUniformMatrix4fv(glGetUniformLocation(shader->_m_id, "view"), 1, GL_FALSE,
+              glm::value_ptr(view));
       glUniformMatrix4fv(glGetUniformLocation(shader->_m_id, "projection"), 1,
-                         GL_FALSE, glm::value_ptr(projection));
+              GL_FALSE, glm::value_ptr(projection));
+
+      glBindVertexArray(VAO);
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 

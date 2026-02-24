@@ -230,6 +230,9 @@ int main(void) {
                   0.5f, 0.31f);
       glUniform3f(glGetUniformLocation(shader->_m_id, "lightColor"), 1.0f, 1.0f,
                   1.0f);
+      glUniform3f(glGetUniformLocation(shader->_m_id, "viewPos"),
+                  camera.m_position.x, camera.m_position.y,
+                  camera.m_position.z);
 
       glBindVertexArray(VAO);
       glDrawArrays(GL_TRIANGLES, 0, 36);

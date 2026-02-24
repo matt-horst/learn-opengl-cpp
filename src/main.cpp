@@ -59,7 +59,7 @@ int main(void) {
   ShaderBuilder sb, sb_light;
   try {
     sb._m_vertex_src = readFileToString("res/shaders/vertex.glsl");
-    sb._m_fragment_src = readFileToString("res/shaders/fragment.glsl");
+    sb._m_fragment_src = readFileToString("res/shaders/fragment_directional.glsl");
 
     sb_light._m_fragment_src =
         readFileToString("res/shaders/fragment_light.glsl");
@@ -170,6 +170,13 @@ int main(void) {
   shader->set_i("material.diffuse", 0);
   shader->set_i("material.specular", 1);
 
+  const glm::vec3 cube_positions[] = {
+      glm::vec3(0.0f, 0.0f, 0.0f),    glm::vec3(2.0f, 5.0f, -15.0f),
+      glm::vec3(-1.5f, -2.2f, -2.5f), glm::vec3(-3.8f, -2.0f, -12.3f),
+      glm::vec3(2.4f, -0.4f, -3.5f),  glm::vec3(-1.7f, 3.0f, -7.5f),
+      glm::vec3(1.3f, -2.0f, -2.5f),  glm::vec3(1.5f, 2.0f, -2.5f),
+      glm::vec3(1.5f, 0.2f, -1.5f),   glm::vec3(-1.3f, 1.0f, -1.5f)};
+
   while (!glfwWindowShouldClose(window)) {
     const float current_frame = glfwGetTime();
     const float delta_time = current_frame - last_frame;
@@ -223,36 +230,40 @@ int main(void) {
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
-    // Cube
-    {
-      const glm::mat4 model(1.0f);
+    for (unsigned int i = 0; i < 10; i++) {
+      // Cube
+      {
+        const glm::mat4 model =
+            glm::rotate(glm::translate(glm::mat4(1.0f), cube_positions[i]),
+                        glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
 
-      shader->use();
+        shader->use();
 
-      shader->set_mat4("model", model);
-      shader->set_mat4("view", view);
-      shader->set_mat4("projection", projection);
-      shader->set_vec3("viewPos", camera.m_position);
+        shader->set_mat4("model", model);
+        shader->set_mat4("view", view);
+        shader->set_mat4("projection", projection);
+        shader->set_vec3("viewPos", camera.m_position);
 
-      // Light properties
-      shader->set_vec3("light.ambient", 0.2f, 0.2f, 0.2f);
-      shader->set_vec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-      shader->set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
-      shader->set_vec3("light.position", light_pos);
+        // Light properties
+        shader->set_vec3("light.ambient", 0.2f, 0.2f, 0.2f);
+        shader->set_vec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+        shader->set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
+        shader->set_vec3("light.direction", -0.2f, -1.0f, -0.3f);
 
-      // Material properties
-      shader->set_i("material.diffuse", 0);
-      shader->set_i("material.specular", 1);
-      shader->set_f("material.shininess", 64.0f);
+        // Material properties
+        shader->set_i("material.diffuse", 0);
+        shader->set_i("material.specular", 1);
+        shader->set_f("material.shininess", 64.0f);
 
-      glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, diffuse_map);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, diffuse_map);
 
-      glActiveTexture(GL_TEXTURE1);
-      glBindTexture(GL_TEXTURE_2D, specular_map);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specular_map);
 
-      glBindVertexArray(VAO);
-      glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+      }
     }
 
     glfwSwapBuffers(window);

@@ -250,7 +250,8 @@ int main(void) {
         shader->set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
         shader->set_vec3("light.position", camera.m_position);
         shader->set_vec3("light.direction", camera.m_front);
-        shader->set_f("light.cutOff", glm::cos(glm::radians(12.5f)));
+        shader->set_f("light.innerCutOff", glm::cos(glm::radians(12.5f)));
+        shader->set_f("light.outerCutOff", glm::cos(glm::radians(17.5f)));
 
         // Material properties
         shader->set_i("material.diffuse", 0);

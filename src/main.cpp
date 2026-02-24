@@ -59,7 +59,7 @@ int main(void) {
   ShaderBuilder sb, sb_light;
   try {
     sb._m_vertex_src = readFileToString("res/shaders/vertex.glsl");
-    sb._m_fragment_src = readFileToString("res/shaders/fragment_directional.glsl");
+    sb._m_fragment_src = readFileToString("res/shaders/fragment_point.glsl");
 
     sb_light._m_fragment_src =
         readFileToString("res/shaders/fragment_light.glsl");
@@ -248,7 +248,10 @@ int main(void) {
         shader->set_vec3("light.ambient", 0.2f, 0.2f, 0.2f);
         shader->set_vec3("light.diffuse", 0.5f, 0.5f, 0.5f);
         shader->set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
-        shader->set_vec3("light.direction", -0.2f, -1.0f, -0.3f);
+        shader->set_vec3("light.position", light_pos);
+        shader->set_f("light.constant", 1.0f);
+        shader->set_f("light.linear", 0.09f);
+        shader->set_f("light.quadratic", 0.032f);
 
         // Material properties
         shader->set_i("material.diffuse", 0);

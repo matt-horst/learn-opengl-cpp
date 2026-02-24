@@ -1,3 +1,5 @@
+#include "glm/ext/vector_float3.hpp"
+#include "glm/fwd.hpp"
 #include <glad/glad.h>
 
 #include <GLFW/glfw3.h>
@@ -22,7 +24,7 @@ void framebuffer_size_callback(GLFWwindow *, int, int);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
-Camera camera;
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 int main(void) {
   if (!glfwInit()) {
@@ -185,7 +187,7 @@ int main(void) {
       camera.m_panning_speed = DEFAULT_PANNING_SPEED;
     }
 
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     const glm::mat4 view = camera.get_view_matrix();
@@ -200,13 +202,9 @@ int main(void) {
       const glm::mat4 model = glm::scale(
           glm::translate(glm::mat4(1.0f), light_pos), glm::vec3(0.2f));
 
-      glUniformMatrix4fv(glGetUniformLocation(light_shader->_m_id, "model"), 1,
-                         GL_FALSE, glm::value_ptr(model));
-      glUniformMatrix4fv(glGetUniformLocation(light_shader->_m_id, "view"), 1,
-                         GL_FALSE, glm::value_ptr(view));
-      glUniformMatrix4fv(
-          glGetUniformLocation(light_shader->_m_id, "projection"), 1, GL_FALSE,
-          glm::value_ptr(projection));
+      light_shader->set_mat4("model", model);
+      light_shader->set_mat4("view", view);
+      light_shader->set_mat4("projection", projection);
 
       glBindVertexArray(lightVAO);
       glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -214,25 +212,31 @@ int main(void) {
 
     // Cube
     {
-      shader->use();
-
       const glm::mat4 model(1.0f);
 
-      glUniformMatrix4fv(glGetUniformLocation(shader->_m_id, "model"), 1,
-                         GL_FALSE, glm::value_ptr(model));
-      glUniformMatrix4fv(glGetUniformLocation(shader->_m_id, "view"), 1,
-                         GL_FALSE, glm::value_ptr(view));
-      glUniformMatrix4fv(glGetUniformLocation(shader->_m_id, "projection"), 1,
-                         GL_FALSE, glm::value_ptr(projection));
-      glUniform3f(glGetUniformLocation(shader->_m_id, "lightPos"), light_pos.x,
-                  light_pos.y, light_pos.z);
-      glUniform3f(glGetUniformLocation(shader->_m_id, "objectColor"), 1.0f,
-                  0.5f, 0.31f);
-      glUniform3f(glGetUniformLocation(shader->_m_id, "lightColor"), 1.0f, 1.0f,
-                  1.0f);
-      glUniform3f(glGetUniformLocation(shader->_m_id, "viewPos"),
-                  camera.m_position.x, camera.m_position.y,
-                  camera.m_position.z);
+      shader->use();
+
+      shader->set_mat4("model", model);
+      shader->set_mat4("view", view);
+      shader->set_mat4("projection", projection);
+      shader->set_vec3("viewPos", camera.m_position);
+
+      // Light properties
+      const glm::vec3 light_color(static_cast<float>(sin(glfwGetTime()) * 2.0),
+                                  static_cast<float>(sin(glfwGetTime() * 0.7)),
+                                  static_cast<float>(sin(glfwGetTime() * 1.3)));
+      const glm::vec3 diffuse_color = light_color * glm::vec3(0.5f);
+      const glm::vec3 ambient_color = light_color * glm::vec3(0.2f);
+      shader->set_vec3("light.ambient", ambient_color);
+      shader->set_vec3("light.diffuse", diffuse_color);
+      shader->set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
+      shader->set_vec3("light.position", light_pos);
+
+      // Material properties
+      shader->set_vec3("material.ambient", 1.0f, 0.5f, 0.31f);
+      shader->set_vec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+      shader->set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
+      shader->set_f("material.shininess", 32.0f);
 
       glBindVertexArray(VAO);
       glDrawArrays(GL_TRIANGLES, 0, 36);

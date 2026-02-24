@@ -1,4 +1,6 @@
 #include "shader.hpp"
+#include "glm/ext/vector_float3.hpp"
+#include "glm/gtc/type_ptr.hpp"
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -84,3 +86,37 @@ std::unique_ptr<Shader> ShaderBuilder::build() {
 Shader::Shader(unsigned int id) : _m_id(id) {}
 
 Shader::~Shader() { /* glDeleteProgram(this->_m_id); */ }
+
+// void set_vec3(const std::string &name, glm::vec3 v);
+// void set_vec3(const std::string &name, float x, float y, float z);
+// void set_vec3(const std::string &name, float x);
+//
+// void set_mat4(const std::string &name, glm::mat4 v);
+//
+// void set_f(const std::string &name, float v);
+// void set_i(const std::string &name, int v);
+//
+void Shader::set_vec3(const std::string &name, glm::vec3 v) {
+  glUniform3f(glGetUniformLocation(_m_id, name.c_str()), v.x, v.y, v.z);
+}
+
+void Shader::set_vec3(const std::string &name, float x, float y, float z) {
+  glUniform3f(glGetUniformLocation(_m_id, name.c_str()), x, y, z);
+}
+
+void Shader::set_vec3(const std::string &name, float v) {
+  glUniform3f(glGetUniformLocation(_m_id, name.c_str()), v, v, v);
+}
+
+void Shader::set_mat4(const std::string &name, glm::mat4 v) {
+  glUniformMatrix4fv(glGetUniformLocation(_m_id, name.c_str()), 1, GL_FALSE,
+                     glm::value_ptr(v));
+}
+
+void Shader::set_f(const std::string &name, float v) {
+    glUniform1f(glGetUniformLocation(_m_id, name.c_str()), v);
+}
+
+void Shader::set_i(const std::string &name, int v) {
+    glUniform1i(glGetUniformLocation(_m_id, name.c_str()), v);
+}

@@ -80,43 +80,37 @@ std::unique_ptr<Shader> ShaderBuilder::build() {
   glDeleteShader(vertex_id);
   glDeleteShader(fragment_id);
 
-  return std::make_unique<Shader>(Shader(id));
+  return std::make_unique<Shader>(id);
 }
 
 Shader::Shader(unsigned int id) : _m_id(id) {}
 
-Shader::~Shader() { /* glDeleteProgram(this->_m_id); */ }
+Shader::~Shader() {
+  glDeleteProgram(this->_m_id);
+}
 
-// void set_vec3(const std::string &name, glm::vec3 v);
-// void set_vec3(const std::string &name, float x, float y, float z);
-// void set_vec3(const std::string &name, float x);
-//
-// void set_mat4(const std::string &name, glm::mat4 v);
-//
-// void set_f(const std::string &name, float v);
-// void set_i(const std::string &name, int v);
-//
-void Shader::set_vec3(const std::string &name, glm::vec3 v) {
+void Shader::set_vec3(const std::string &name, glm::vec3 v) const {
   glUniform3f(glGetUniformLocation(_m_id, name.c_str()), v.x, v.y, v.z);
 }
 
-void Shader::set_vec3(const std::string &name, float x, float y, float z) {
+void Shader::set_vec3(const std::string &name, float x, float y,
+                      float z) const {
   glUniform3f(glGetUniformLocation(_m_id, name.c_str()), x, y, z);
 }
 
-void Shader::set_vec3(const std::string &name, float v) {
+void Shader::set_vec3(const std::string &name, float v) const {
   glUniform3f(glGetUniformLocation(_m_id, name.c_str()), v, v, v);
 }
 
-void Shader::set_mat4(const std::string &name, glm::mat4 v) {
+void Shader::set_mat4(const std::string &name, glm::mat4 v) const {
   glUniformMatrix4fv(glGetUniformLocation(_m_id, name.c_str()), 1, GL_FALSE,
                      glm::value_ptr(v));
 }
 
-void Shader::set_f(const std::string &name, float v) {
-    glUniform1f(glGetUniformLocation(_m_id, name.c_str()), v);
+void Shader::set_f(const std::string &name, float v) const {
+  glUniform1f(glGetUniformLocation(_m_id, name.c_str()), v);
 }
 
-void Shader::set_i(const std::string &name, int v) {
-    glUniform1i(glGetUniformLocation(_m_id, name.c_str()), v);
+void Shader::set_i(const std::string &name, int v) const {
+  glUniform1i(glGetUniformLocation(_m_id, name.c_str()), v);
 }

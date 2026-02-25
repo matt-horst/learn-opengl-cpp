@@ -5,7 +5,9 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -59,7 +61,7 @@ int main(void) {
   ShaderBuilder sb, sb_light;
   try {
     sb._m_vertex_src = readFileToString("res/shaders/vertex.glsl");
-    sb._m_fragment_src = readFileToString("res/shaders/fragment_spot.glsl");
+    sb._m_fragment_src = readFileToString("res/shaders/fragment.glsl");
 
     sb_light._m_fragment_src =
         readFileToString("res/shaders/fragment_light.glsl");
@@ -177,6 +179,10 @@ int main(void) {
       glm::vec3(1.3f, -2.0f, -2.5f),  glm::vec3(1.5f, 2.0f, -2.5f),
       glm::vec3(1.5f, 0.2f, -1.5f),   glm::vec3(-1.3f, 1.0f, -1.5f)};
 
+  const glm::vec3 point_light_positions[] = {
+      glm::vec3(0.7f, 0.2f, 2.0f), glm::vec3(2.3f, -3.3f, -4.0f),
+      glm::vec3(-4.0f, 2.0f, -12.0f), glm::vec3(0.0f, 0.0f, -3.0f)};
+
   while (!glfwWindowShouldClose(window)) {
     const float current_frame = glfwGetTime();
     const float delta_time = current_frame - last_frame;
@@ -219,15 +225,17 @@ int main(void) {
     {
       light_shader->use();
 
-      const glm::mat4 model = glm::scale(
-          glm::translate(glm::mat4(1.0f), light_pos), glm::vec3(0.2f));
+      for (unsigned int i = 0; i < 4; i++) {
+          const glm::mat4 model = glm::scale(
+                  glm::translate(glm::mat4(1.0f), point_light_positions[i]), glm::vec3(0.2f));
 
-      light_shader->set_mat4("model", model);
-      light_shader->set_mat4("view", view);
-      light_shader->set_mat4("projection", projection);
+          light_shader->set_mat4("model", model);
+          light_shader->set_mat4("view", view);
+          light_shader->set_mat4("projection", projection);
 
-      glBindVertexArray(lightVAO);
-      glDrawArrays(GL_TRIANGLES, 0, 36);
+          glBindVertexArray(lightVAO);
+          glDrawArrays(GL_TRIANGLES, 0, 36);
+      }
     }
 
     for (unsigned int i = 0; i < 10; i++) {
@@ -245,13 +253,37 @@ int main(void) {
         shader->set_vec3("viewPos", camera.m_position);
 
         // Light properties
-        shader->set_vec3("light.ambient", 0.2f, 0.2f, 0.2f);
-        shader->set_vec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-        shader->set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
-        shader->set_vec3("light.position", camera.m_position);
-        shader->set_vec3("light.direction", camera.m_front);
-        shader->set_f("light.innerCutOff", glm::cos(glm::radians(12.5f)));
-        shader->set_f("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+        // Directional
+        shader->set_vec3("dirLight.ambient", 0.2f, 0.2f, 0.2f);
+        shader->set_vec3("dirLight.diffuse", 0.5f, 0.5f, 0.5f);
+        shader->set_vec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
+        shader->set_vec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+
+        // Point Lights
+        for (unsigned int i = 0; i < 4; i++) {
+          std::stringstream ss;
+          ss << "pointLights[" << i << "].";
+          const std::string prefix = ss.str();
+          shader->set_vec3(prefix + "position", cube_positions[i]);
+          shader->set_vec3(prefix + "ambient", 0.05f, 0.05f, 0.05f);
+          shader->set_vec3(prefix + "diffuse", 0.8f, 0.8f, 0.8f);
+          shader->set_vec3(prefix + "specular", 1.0f, 1.0f, 1.0f);
+          shader->set_f(prefix + "constant", 1.0f);
+          shader->set_f(prefix + "linear", 0.09f);
+          shader->set_f(prefix + "quadratic", 0.032f);
+        }
+
+        // Spot Light
+        shader->set_vec3("spotLight.position", camera.m_position);
+        shader->set_vec3("spotLight.direction", camera.m_front);
+        shader->set_vec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        shader->set_vec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        shader->set_vec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        shader->set_f("spotLight.constant", 1.0f);
+        shader->set_f("spotLight.constant", 0.09f);
+        shader->set_f("spotLight.constant", 0.032f);
+        shader->set_f("spotLight.innerCutOff", glm::cos(glm::radians(12.5f)));
+        shader->set_f("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
 
         // Material properties
         shader->set_i("material.diffuse", 0);

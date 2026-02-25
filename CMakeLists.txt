@@ -25,5 +25,11 @@ file(GLOB_RECURSE VENDOR_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/ve
 target_sources(LearnOpenGL PRIVATE ${PROJECT_SOURCES} ${VENDOR_SOURCES})
 
 target_include_directories(LearnOpenGL PRIVATE include)
-target_link_libraries(LearnOpenGL PRIVATE glfw)
-target_link_libraries(LearnOpenGL PRIVATE glm::glm)
+
+add_library(assimp SHARED IMPORTED)
+
+set_target_properties(assimp PROPERTIES
+    IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/lib/libassimp.so"
+)
+
+target_link_libraries(LearnOpenGL PRIVATE glfw glm::glm assimp)

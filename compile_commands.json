@@ -1,5 +1,44 @@
 [
   {
+    "file": "/home/matt/code/learn-opengl-cpp/build/_deps/glm-src/glm/detail/glm.cpp",
+    "arguments": [
+      "c++",
+      "-I/home/matt/code/learn-opengl-cpp/build/_deps/glm-src",
+      "-std=c++20",
+      "-MD",
+      "-MT",
+      "_deps/glm-build/glm/CMakeFiles/glm.dir/detail/glm.cpp.o",
+      "-MF",
+      "CMakeFiles/glm.dir/detail/glm.cpp.o.d",
+      "-o",
+      "CMakeFiles/glm.dir/detail/glm.cpp.o",
+      "-c",
+      "/home/matt/code/learn-opengl-cpp/build/_deps/glm-src/glm/detail/glm.cpp"
+    ],
+    "directory": "/home/matt/code/learn-opengl-cpp/build/_deps/glm-build/glm",
+    "output": "CMakeFiles/glm.dir/detail/glm.cpp.o"
+  },
+  {
+    "file": "/home/matt/code/learn-opengl-cpp/src/camera.cpp",
+    "arguments": [
+      "c++",
+      "-I/home/matt/code/learn-opengl-cpp/include",
+      "-I/home/matt/code/learn-opengl-cpp/build/_deps/glm-src",
+      "-std=c++20",
+      "-MD",
+      "-MT",
+      "CMakeFiles/LearnOpenGL.dir/src/camera.cpp.o",
+      "-MF",
+      "CMakeFiles/LearnOpenGL.dir/src/camera.cpp.o.d",
+      "-o",
+      "CMakeFiles/LearnOpenGL.dir/src/camera.cpp.o",
+      "-c",
+      "/home/matt/code/learn-opengl-cpp/src/camera.cpp"
+    ],
+    "directory": "/home/matt/code/learn-opengl-cpp/build",
+    "output": "CMakeFiles/LearnOpenGL.dir/src/camera.cpp.o"
+  },
+  {
     "file": "/home/matt/code/learn-opengl-cpp/src/main.cpp",
     "arguments": [
       "c++",
@@ -18,5 +57,44 @@
     ],
     "directory": "/home/matt/code/learn-opengl-cpp/build",
     "output": "CMakeFiles/LearnOpenGL.dir/src/main.cpp.o"
+  },
+  {
+    "file": "/home/matt/code/learn-opengl-cpp/src/shader.cpp",
+    "arguments": [
+      "c++",
+      "-I/home/matt/code/learn-opengl-cpp/include",
+      "-I/home/matt/code/learn-opengl-cpp/build/_deps/glm-src",
+      "-std=c++20",
+      "-MD",
+      "-MT",
+      "CMakeFiles/LearnOpenGL.dir/src/shader.cpp.o",
+      "-MF",
+      "CMakeFiles/LearnOpenGL.dir/src/shader.cpp.o.d",
+      "-o",
+      "CMakeFiles/LearnOpenGL.dir/src/shader.cpp.o",
+      "-c",
+      "/home/matt/code/learn-opengl-cpp/src/shader.cpp"
+    ],
+    "directory": "/home/matt/code/learn-opengl-cpp/build",
+    "output": "CMakeFiles/LearnOpenGL.dir/src/shader.cpp.o"
+  },
+  {
+    "file": "/home/matt/code/learn-opengl-cpp/vendor/glad/glad.c",
+    "arguments": [
+      "cc",
+      "-I/home/matt/code/learn-opengl-cpp/include",
+      "-I/home/matt/code/learn-opengl-cpp/build/_deps/glm-src",
+      "-MD",
+      "-MT",
+      "CMakeFiles/LearnOpenGL.dir/vendor/glad/glad.c.o",
+      "-MF",
+      "CMakeFiles/LearnOpenGL.dir/vendor/glad/glad.c.o.d",
+      "-o",
+      "CMakeFiles/LearnOpenGL.dir/vendor/glad/glad.c.o",
+      "-c",
+      "/home/matt/code/learn-opengl-cpp/vendor/glad/glad.c"
+    ],
+    "directory": "/home/matt/code/learn-opengl-cpp/build",
+    "output": "CMakeFiles/LearnOpenGL.dir/vendor/glad/glad.c.o"
   }
 ]

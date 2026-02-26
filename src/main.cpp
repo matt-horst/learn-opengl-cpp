@@ -57,98 +57,99 @@ int main(void) {
     std::fprintf(stderr, "couldn't initialize GLAD");
     return EXIT_FAILURE;
   }
+  {
 
-  ShaderBuilder sb;
-  try {
-    sb._m_vertex_src = readFileToString("res/shaders/vertex_model.glsl");
-    sb._m_fragment_src = readFileToString("res/shaders/fragment_model.glsl");
+    ShaderBuilder sb;
+    try {
+      sb._m_vertex_src = readFileToString("res/shaders/vertex_model.glsl");
+      sb._m_fragment_src = readFileToString("res/shaders/fragment_model.glsl");
 
-  } catch (const std::runtime_error &e) {
-    std::cerr << e.what();
-    return EXIT_FAILURE;
-  }
-
-  std::unique_ptr<Shader> shader;
-  try {
-    shader = sb.build();
-  } catch (const std::runtime_error &e) {
-    std::cerr << e.what();
-    return EXIT_FAILURE;
-  }
-
-  glEnable(GL_DEPTH_TEST);
-
-  float last_frame = 0.0f;
-
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  glfwSetCursorPosCallback(window, mouse_callback);
-  glfwSetScrollCallback(window, scroll_callback);
-
-  stbi_set_flip_vertically_on_load(true);
-
-  Model model("res/models/backpack/backpack.obj");
-
-  glEnable(GL_DEPTH_TEST);
-
-
-  while (!glfwWindowShouldClose(window)) {
-    const float current_frame = glfwGetTime();
-    const float delta_time = current_frame - last_frame;
-    last_frame = current_frame;
-
-    int width, height;
-    glfwGetWindowSize(window, &width, &height);
-
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-      glfwSetWindowShouldClose(window, GLFW_TRUE);
+    } catch (const std::runtime_error &e) {
+      std::cerr << e.what();
+      return EXIT_FAILURE;
     }
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-      camera.pan(PanMovement::FORWARD, delta_time);
-    }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-      camera.pan(PanMovement::BACK, delta_time);
-    }
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-      camera.pan(PanMovement::RIGHT, delta_time);
-    }
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-      camera.pan(PanMovement::LEFT, delta_time);
-    }
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-      camera.m_panning_speed = DEFAULT_PANNING_SPEED * 2.0;
-    } else {
-      camera.m_panning_speed = DEFAULT_PANNING_SPEED;
+    std::unique_ptr<Shader> shader;
+    try {
+      shader = sb.build();
+    } catch (const std::runtime_error &e) {
+      std::cerr << e.what();
+      return EXIT_FAILURE;
     }
 
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
 
-    shader->use();
+    float last_frame = 0.0f;
 
-    // view/projection transformations
-    glm::mat4 projection =
-        glm::perspective(glm::radians(camera.m_zoom),
-                         (float)width / (float)height, 0.1f, 100.0f);
-    glm::mat4 view = camera.get_view_matrix();
-    shader->set_mat4("projection", projection);
-    shader->set_mat4("view", view);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
-    // render the loaded model
-    glm::mat4 m = glm::mat4(1.0f);
-    m = glm::translate(
-        m, glm::vec3(
-               0.0f, 0.0f,
-               0.0f)); // translate it down so it's at the center of the scene
-    m = glm::scale(
-        m,
-        glm::vec3(1.0f, 1.0f,
-                  1.0f)); // it's a bit too big for our scene, so scale it down
-    shader->set_mat4("model", m);
-    model.draw(*shader);
+    stbi_set_flip_vertically_on_load(true);
 
-    glfwSwapBuffers(window);
-    glfwPollEvents();
+    Model model("res/models/backpack/backpack.obj");
+
+    glEnable(GL_DEPTH_TEST);
+
+    while (!glfwWindowShouldClose(window)) {
+      const float current_frame = glfwGetTime();
+      const float delta_time = current_frame - last_frame;
+      last_frame = current_frame;
+
+      int width, height;
+      glfwGetWindowSize(window, &width, &height);
+
+      if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+      }
+
+      if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        camera.pan(PanMovement::FORWARD, delta_time);
+      }
+      if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        camera.pan(PanMovement::BACK, delta_time);
+      }
+      if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        camera.pan(PanMovement::RIGHT, delta_time);
+      }
+      if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        camera.pan(PanMovement::LEFT, delta_time);
+      }
+      if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        camera.m_panning_speed = DEFAULT_PANNING_SPEED * 2.0;
+      } else {
+        camera.m_panning_speed = DEFAULT_PANNING_SPEED;
+      }
+
+      glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+      shader->use();
+
+      // view/projection transformations
+      glm::mat4 projection =
+          glm::perspective(glm::radians(camera.m_zoom),
+                           (float)width / (float)height, 0.1f, 100.0f);
+      glm::mat4 view = camera.get_view_matrix();
+      shader->set_mat4("projection", projection);
+      shader->set_mat4("view", view);
+
+      // render the loaded model
+      glm::mat4 m = glm::mat4(1.0f);
+      m = glm::translate(
+          m, glm::vec3(
+                 0.0f, 0.0f,
+                 0.0f)); // translate it down so it's at the center of the scene
+      m = glm::scale(
+          m, glm::vec3(
+                 1.0f, 1.0f,
+                 1.0f)); // it's a bit too big for our scene, so scale it down
+      shader->set_mat4("model", m);
+      model.draw(*shader);
+
+      glfwSwapBuffers(window);
+      glfwPollEvents();
+    }
   }
 
   glfwDestroyWindow(window);

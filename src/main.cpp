@@ -62,9 +62,9 @@ int main(void) {
         ShaderBuilder sb;
         try {
             sb._m_vertex_src =
-                readFileToString("res/shaders/vertex_model.glsl");
+                readFileToString("res/shaders/vertex_depth.glsl");
             sb._m_fragment_src =
-                readFileToString("res/shaders/fragment_model.glsl");
+                readFileToString("res/shaders/fragment_depth.glsl");
 
         } catch (const std::runtime_error &e) {
             std::cerr << e.what();
@@ -89,9 +89,87 @@ int main(void) {
 
         stbi_set_flip_vertically_on_load(true);
 
-        Model model("res/models/backpack/backpack.obj");
+        // Model model("res/models/backpack/backpack.obj");
+
+        // set up vertex data (and buffer(s)) and configure vertex attributes
+        // ------------------------------------------------------------------
+        float cubeVertices[] = {
+            // positions          // texture Coords
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.5f,  -0.5f, -0.5f, 1.0f, 0.0f,
+            0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
+            -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+
+            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, 0.5f,  -0.5f, 0.5f,  1.0f, 0.0f,
+            0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+            -0.5f, 0.5f,  0.5f,  0.0f, 1.0f, -0.5f, -0.5f, 0.5f,  0.0f, 0.0f,
+
+            -0.5f, 0.5f,  0.5f,  1.0f, 0.0f, -0.5f, 0.5f,  -0.5f, 1.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, -0.5f, 0.5f,  0.5f,  1.0f, 0.0f,
+
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
+            0.5f,  -0.5f, -0.5f, 0.0f, 1.0f, 0.5f,  -0.5f, -0.5f, 0.0f, 1.0f,
+            0.5f,  -0.5f, 0.5f,  0.0f, 0.0f, 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.5f,  -0.5f, -0.5f, 1.0f, 1.0f,
+            0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, 0.5f,  -0.5f, 0.5f,  1.0f, 0.0f,
+            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+
+            -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+            -0.5f, 0.5f,  0.5f,  0.0f, 0.0f, -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f};
+        float planeVertices[] = {
+            // positions          // texture Coords (note we set these higher
+            // than 1 (together with GL_REPEAT as texture wrapping mode). this
+            // will cause the floor texture to repeat)
+            5.0f, -0.5f, 5.0f,  2.0f,  0.0f,  -5.0f, -0.5f, 5.0f,
+            0.0f, 0.0f,  -5.0f, -0.5f, -5.0f, 0.0f,  2.0f,
+
+            5.0f, -0.5f, 5.0f,  2.0f,  0.0f,  -5.0f, -0.5f, -5.0f,
+            0.0f, 2.0f,  5.0f,  -0.5f, -5.0f, 2.0f,  2.0f};
+        // cube VAO
+        unsigned int cubeVAO, cubeVBO;
+        glGenVertexArrays(1, &cubeVAO);
+        glGenBuffers(1, &cubeVBO);
+        glBindVertexArray(cubeVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices,
+                     GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                              (void *)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                              (void *)(3 * sizeof(float)));
+        glBindVertexArray(0);
+        // plane VAO
+        unsigned int planeVAO, planeVBO;
+        glGenVertexArrays(1, &planeVAO);
+        glGenBuffers(1, &planeVBO);
+        glBindVertexArray(planeVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices,
+                     GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                              (void *)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                              (void *)(3 * sizeof(float)));
+        glBindVertexArray(0);
+
+        // load textures
+        // -------------
+        Texture cubeTexture {"res/textures/marble.jpg", ""};
+        Texture floorTexture {"res/textures/metal.png", ""};
+
+        // shader configuration
+        // --------------------
+        shader->use();
+        shader->set_i("texture1", 0);
 
         glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
 
         while (!glfwWindowShouldClose(window)) {
             const float current_frame = glfwGetTime();
@@ -139,14 +217,30 @@ int main(void) {
             // render the loaded model
             glm::mat4 m = glm::mat4(1.0f);
             m = glm::translate(m,
-                               glm::vec3(0.0f, 0.0f,
-                                         0.0f)); // translate it down so it's at
+                               glm::vec3(-1.0f, 0.0f,
+                                         -1.0f)); // translate it down so it's at
                                                  // the center of the scene
             m = glm::scale(m, glm::vec3(1.0f, 1.0f,
                                         1.0f)); // it's a bit too big for our
                                                 // scene, so scale it down
             shader->set_mat4("model", m);
-            model.draw(*shader);
+
+            glBindVertexArray(cubeVAO);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, cubeTexture.id);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+
+            m = glm::mat4(1.0f);
+            m = glm::translate(m, glm::vec3(2.0f, 0.0f, 0.0f));
+            shader->set_mat4("model", m);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+
+            glBindVertexArray(planeVAO);
+            glBindTexture(GL_TEXTURE_2D, floorTexture.id);
+            shader->set_mat4("model", glm::mat4(1.0f));
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+            glBindVertexArray(0);
+            
 
             glfwSwapBuffers(window);
             glfwPollEvents();

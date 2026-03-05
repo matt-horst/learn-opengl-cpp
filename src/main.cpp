@@ -59,21 +59,24 @@ int main(void) {
     }
     {
 
-        ShaderBuilder sb;
+        ShaderBuilder sb, sb_single_color;
         try {
             sb._m_vertex_src =
                 readFileToString("res/shaders/vertex_depth.glsl");
             sb._m_fragment_src =
                 readFileToString("res/shaders/fragment_depth.glsl");
+            sb_single_color._m_vertex_src = readFileToString("res/shaders/vertex_depth.glsl");
+            sb_single_color._m_fragment_src = readFileToString("res/shaders/fragment_single_color.glsl");
 
         } catch (const std::runtime_error &e) {
             std::cerr << e.what();
             return EXIT_FAILURE;
         }
 
-        std::unique_ptr<Shader> shader;
+        std::unique_ptr<Shader> shader, shader_single_color;
         try {
             shader = sb.build();
+            shader_single_color = sb_single_color.build();
         } catch (const std::runtime_error &e) {
             std::cerr << e.what();
             return EXIT_FAILURE;
@@ -160,8 +163,8 @@ int main(void) {
 
         // load textures
         // -------------
-        Texture cubeTexture {"res/textures/marble.jpg", ""};
-        Texture floorTexture {"res/textures/metal.png", ""};
+        Texture cubeTexture{"res/textures/marble.jpg", ""};
+        Texture floorTexture{"res/textures/metal.png", ""};
 
         // shader configuration
         // --------------------
@@ -169,6 +172,7 @@ int main(void) {
         shader->set_i("texture1", 0);
 
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_STENCIL_TEST);
         glDepthFunc(GL_LESS);
 
         while (!glfwWindowShouldClose(window)) {
@@ -201,46 +205,84 @@ int main(void) {
                 camera.m_panning_speed = DEFAULT_PANNING_SPEED;
             }
 
-            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+            glEnable(GL_DEPTH_TEST);
 
-            shader->use();
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+
 
             // view/projection transformations
             glm::mat4 projection =
                 glm::perspective(glm::radians(camera.m_zoom),
                                  (float)width / (float)height, 0.1f, 100.0f);
             glm::mat4 view = camera.get_view_matrix();
+            shader->use();
             shader->set_mat4("projection", projection);
             shader->set_mat4("view", view);
+            shader_single_color->use();
+            shader_single_color->set_mat4("projection", projection);
+            shader_single_color->set_mat4("view", view);
 
-            // render the loaded model
-            glm::mat4 m = glm::mat4(1.0f);
-            m = glm::translate(m,
-                               glm::vec3(-1.0f, 0.0f,
-                                         -1.0f)); // translate it down so it's at
-                                                 // the center of the scene
-            m = glm::scale(m, glm::vec3(1.0f, 1.0f,
-                                        1.0f)); // it's a bit too big for our
-                                                // scene, so scale it down
-            shader->set_mat4("model", m);
+            {
+                // Draw the floor
+                shader->use();
+                glStencilMask(0x00);
+                glBindVertexArray(planeVAO);
+                glBindTexture(GL_TEXTURE_2D, floorTexture.id);
+                shader->set_mat4("model", glm::mat4(1.0f));
+                glDrawArrays(GL_TRIANGLES, 0, 6);
+                glBindVertexArray(0);
+            }
 
-            glBindVertexArray(cubeVAO);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, cubeTexture.id);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            {
+                // Draw containers
+                glStencilFunc(GL_ALWAYS, 1, 0xFF);
+                glStencilMask(0xFF);
 
-            m = glm::mat4(1.0f);
-            m = glm::translate(m, glm::vec3(2.0f, 0.0f, 0.0f));
-            shader->set_mat4("model", m);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+                glm::mat4 m = glm::mat4(1.0f);
+                m = glm::translate( m, glm::vec3(-1.0f, 0.0f, -1.0f)); 
+                m = glm::scale(m, glm::vec3(1.0f, 1.0f, 1.0f)); 
+                shader->set_mat4("model", m);
 
-            glBindVertexArray(planeVAO);
-            glBindTexture(GL_TEXTURE_2D, floorTexture.id);
-            shader->set_mat4("model", glm::mat4(1.0f));
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-            glBindVertexArray(0);
-            
+                glBindVertexArray(cubeVAO);
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, cubeTexture.id);
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+
+                m = glm::mat4(1.0f);
+                m = glm::translate(m, glm::vec3(2.0f, 0.0f, 0.0f));
+                shader->set_mat4("model", m);
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+
+                glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+                glStencilMask(0x00);
+                glDisable(GL_DEPTH_TEST);
+
+                // Draw Scaled Up Containers
+                shader_single_color->use();
+                m = glm::mat4(1.0f);
+                m = glm::translate( m, glm::vec3(-1.0f, 0.0f, -1.0f)); 
+                m = glm::scale(m, glm::vec3(1.1f, 1.1f, 1.1f));
+                shader_single_color->set_mat4("model", m);
+
+                glBindVertexArray(cubeVAO);
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, cubeTexture.id);
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+
+                m = glm::mat4(1.0f);
+                m = glm::translate(m, glm::vec3(2.0f, 0.0f, 0.0f));
+                m = glm::scale(m, glm::vec3(1.1f, 1.1f, 1.1f));
+                shader_single_color->set_mat4("model", m);
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+
+                glStencilMask(0xFF);
+                glStencilFunc(GL_ALWAYS, 1, 0xFF);
+                glEnable(GL_DEPTH_TEST);
+            }
+
 
             glfwSwapBuffers(window);
             glfwPollEvents();

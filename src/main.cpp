@@ -59,24 +59,26 @@ int main(void) {
     }
     {
 
-        ShaderBuilder sb, sb_single_color;
+        ShaderBuilder sb, sb_blending;
         try {
             sb._m_vertex_src =
                 readFileToString("res/shaders/vertex_depth.glsl");
             sb._m_fragment_src =
                 readFileToString("res/shaders/fragment_depth.glsl");
-            sb_single_color._m_vertex_src = readFileToString("res/shaders/vertex_depth.glsl");
-            sb_single_color._m_fragment_src = readFileToString("res/shaders/fragment_single_color.glsl");
+            sb_blending._m_vertex_src =
+                readFileToString("res/shaders/vertex_depth.glsl");
+            sb_blending._m_fragment_src =
+                readFileToString("res/shaders/fragment_blending.glsl");
 
         } catch (const std::runtime_error &e) {
             std::cerr << e.what();
             return EXIT_FAILURE;
         }
 
-        std::unique_ptr<Shader> shader, shader_single_color;
+        std::unique_ptr<Shader> shader, shader_blending;
         try {
             shader = sb.build();
-            shader_single_color = sb_single_color.build();
+            shader_blending = sb_blending.build();
         } catch (const std::runtime_error &e) {
             std::cerr << e.what();
             return EXIT_FAILURE;
@@ -161,6 +163,46 @@ int main(void) {
                               (void *)(3 * sizeof(float)));
         glBindVertexArray(0);
 
+        // vegetation
+        float vegetationVertices[] = {
+            // positions          // texture Coords (note we set these higher
+            // than 1 (together with GL_REPEAT as texture wrapping mode). this
+            // will cause the floor texture to repeat)
+            0.0f, -0.5f, 0.0f, 0.0f, 0.0f,
+
+            1.0f, -0.5f, 0.0f, 1.0f, 0.0f,
+
+            0.0f, 0.5f, 0.0f, 0.0f, 1.0f,
+
+            0.0f, 0.5f, 0.0f, 0.0f, 1.0f,
+
+            1.0f, -0.5f, 0.0f, 1.0f, 0.0f,
+
+            1.0f, 0.5f, 0.0f, 1.0f, 1.0f};
+
+        glm::vec3 vegetation[] = {
+            glm::vec3(-1.5f, 0.0f, -0.48f), glm::vec3(1.5f, 0.0f, 0.51f),
+            glm::vec3(0.0f, 0.0f, 0.7f),    glm::vec3(-0.3f, 0.0f, -2.3f),
+            glm::vec3(0.5f, 0.0f, -0.6f),
+        };
+
+        Texture grassTexture{"res/textures/grass.png", ""};
+
+        unsigned int vegetationVAO, vegetationVBO;
+        glGenVertexArrays(1, &vegetationVAO);
+        glGenBuffers(1, &vegetationVBO);
+        glBindVertexArray(vegetationVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, vegetationVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vegetationVertices),
+                     &vegetationVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                              (void *)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                              (void *)(3 * sizeof(float)));
+        glBindVertexArray(0);
+
         // load textures
         // -------------
         Texture cubeTexture{"res/textures/marble.jpg", ""};
@@ -209,9 +251,8 @@ int main(void) {
             glEnable(GL_DEPTH_TEST);
 
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
+                    GL_STENCIL_BUFFER_BIT);
 
             // view/projection transformations
             glm::mat4 projection =
@@ -221,9 +262,9 @@ int main(void) {
             shader->use();
             shader->set_mat4("projection", projection);
             shader->set_mat4("view", view);
-            shader_single_color->use();
-            shader_single_color->set_mat4("projection", projection);
-            shader_single_color->set_mat4("view", view);
+            shader_blending->use();
+            shader_blending->set_mat4("projection", projection);
+            shader_blending->set_mat4("view", view);
 
             {
                 // Draw the floor
@@ -242,8 +283,8 @@ int main(void) {
                 glStencilMask(0xFF);
 
                 glm::mat4 m = glm::mat4(1.0f);
-                m = glm::translate( m, glm::vec3(-1.0f, 0.0f, -1.0f)); 
-                m = glm::scale(m, glm::vec3(1.0f, 1.0f, 1.0f)); 
+                m = glm::translate(m, glm::vec3(-1.0f, 0.0f, -1.0f));
+                m = glm::scale(m, glm::vec3(1.0f, 1.0f, 1.0f));
                 shader->set_mat4("model", m);
 
                 glBindVertexArray(cubeVAO);
@@ -256,33 +297,50 @@ int main(void) {
                 shader->set_mat4("model", m);
                 glDrawArrays(GL_TRIANGLES, 0, 36);
 
-                glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-                glStencilMask(0x00);
-                glDisable(GL_DEPTH_TEST);
+                // glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+                // glStencilMask(0x00);
+                // glDisable(GL_DEPTH_TEST);
 
-                // Draw Scaled Up Containers
-                shader_single_color->use();
-                m = glm::mat4(1.0f);
-                m = glm::translate( m, glm::vec3(-1.0f, 0.0f, -1.0f)); 
-                m = glm::scale(m, glm::vec3(1.1f, 1.1f, 1.1f));
-                shader_single_color->set_mat4("model", m);
-
-                glBindVertexArray(cubeVAO);
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, cubeTexture.id);
-                glDrawArrays(GL_TRIANGLES, 0, 36);
-
-                m = glm::mat4(1.0f);
-                m = glm::translate(m, glm::vec3(2.0f, 0.0f, 0.0f));
-                m = glm::scale(m, glm::vec3(1.1f, 1.1f, 1.1f));
-                shader_single_color->set_mat4("model", m);
-                glDrawArrays(GL_TRIANGLES, 0, 36);
-
-                glStencilMask(0xFF);
-                glStencilFunc(GL_ALWAYS, 1, 0xFF);
-                glEnable(GL_DEPTH_TEST);
+                // // Draw Scaled Up Containers
+                // shader_single_color->use();
+                // m = glm::mat4(1.0f);
+                // m = glm::translate( m, glm::vec3(-1.0f, 0.0f, -1.0f));
+                // m = glm::scale(m, glm::vec3(1.1f, 1.1f, 1.1f));
+                // shader_single_color->set_mat4("model", m);
+                //
+                // glBindVertexArray(cubeVAO);
+                // glActiveTexture(GL_TEXTURE0);
+                // glBindTexture(GL_TEXTURE_2D, cubeTexture.id);
+                // glDrawArrays(GL_TRIANGLES, 0, 36);
+                //
+                // m = glm::mat4(1.0f);
+                // m = glm::translate(m, glm::vec3(2.0f, 0.0f, 0.0f));
+                // m = glm::scale(m, glm::vec3(1.1f, 1.1f, 1.1f));
+                // shader_single_color->set_mat4("model", m);
+                // glDrawArrays(GL_TRIANGLES, 0, 36);
+                //
+                // glStencilMask(0xFF);
+                // glStencilFunc(GL_ALWAYS, 1, 0xFF);
+                // glEnable(GL_DEPTH_TEST);
             }
 
+            {
+                // Draw grass
+                shader_blending->use();
+
+                glBindVertexArray(vegetationVAO);
+                glBindTexture(GL_TEXTURE_2D, grassTexture.id);
+
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+                for (unsigned int i = 0; i < 5; i++) {
+                    glm::mat4 m{1.0f};
+                    m = glm::translate(m, vegetation[i]);
+                    shader_blending->set_mat4("model", m);
+                    glDrawArrays(GL_TRIANGLES, 0, 6);
+                }
+            }
 
             glfwSwapBuffers(window);
             glfwPollEvents();

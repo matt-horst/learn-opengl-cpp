@@ -8,35 +8,35 @@
 #include <vector>
 
 struct Vertex {
-  glm::vec3 position, normal;
-  glm::vec2 tex_coord;
+    glm::vec3 position, normal;
+    glm::vec2 tex_coord;
 };
 
 struct Texture {
-  unsigned int id;
-  std::string type;
-  std::string file_path;
+    unsigned int id;
+    std::string type;
+    std::string file_path;
 
-  Texture(const std::string &file_path, const std::string &type);
+    Texture(const std::string &file_path, const std::string &type);
 };
 
 class Mesh {
-public:
-  // Mesh Data
-  std::vector<Vertex> vertices;
-  std::vector<unsigned int> indices;
-  std::vector<Texture> textures;
+  public:
+    // Mesh Data
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    std::vector<Texture> textures;
 
-  Mesh(const std::string &name, std::vector<Vertex> vertices, std::vector<unsigned int> indices,
-       std::vector<Texture> textures);
+    Mesh(const std::string &name, std::vector<Vertex> vertices,
+         std::vector<unsigned int> indices, std::vector<Texture> textures);
 
-  void draw(const Shader &shader) const;
+    void draw(const Shader &shader) const;
 
-  const std::string name;
+    const std::string name;
 
-private:
-  unsigned int vao, vbo, ebo;
-  void setup_mesh();
+  private:
+    unsigned int vao, vbo, ebo;
+    void setup_mesh();
 };
 
 #endif

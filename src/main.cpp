@@ -7,6 +7,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <map>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -186,7 +187,7 @@ int main(void) {
             glm::vec3(0.5f, 0.0f, -0.6f),
         };
 
-        Texture grassTexture{"res/textures/grass.png", ""};
+        Texture grassTexture{"res/textures/blending_transparent_window.png", ""};
 
         unsigned int vegetationVAO, vegetationVBO;
         glGenVertexArrays(1, &vegetationVAO);
@@ -202,6 +203,9 @@ int main(void) {
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
                               (void *)(3 * sizeof(float)));
         glBindVertexArray(0);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         // load textures
         // -------------
@@ -326,6 +330,14 @@ int main(void) {
 
             {
                 // Draw grass
+                // sort windows by distance to the camera
+
+                std::map<float, glm::vec3> sorted;
+                for (unsigned int i = 0; i < 5; i++) {
+                    float distance = glm::length(camera.m_position - vegetation[i]);
+                    sorted[distance] = vegetation[i];
+                }
+
                 shader_blending->use();
 
                 glBindVertexArray(vegetationVAO);
@@ -334,9 +346,9 @@ int main(void) {
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-                for (unsigned int i = 0; i < 5; i++) {
+                for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); it++) {
                     glm::mat4 m{1.0f};
-                    m = glm::translate(m, vegetation[i]);
+                    m = glm::translate(m, it->second);
                     shader_blending->set_mat4("model", m);
                     glDrawArrays(GL_TRIANGLES, 0, 6);
                 }

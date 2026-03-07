@@ -62,14 +62,10 @@ int main(void) {
 
         ShaderBuilder sb, sb_blending;
         try {
-            sb._m_vertex_src =
-                readFileToString("res/shaders/vertex_depth.glsl");
-            sb._m_fragment_src =
-                readFileToString("res/shaders/fragment_depth.glsl");
-            sb_blending._m_vertex_src =
-                readFileToString("res/shaders/vertex_depth.glsl");
-            sb_blending._m_fragment_src =
-                readFileToString("res/shaders/fragment_blending.glsl");
+            sb._m_vertex_src = readFileToString("res/shaders/vertex_depth.glsl");
+            sb._m_fragment_src = readFileToString("res/shaders/fragment_depth.glsl");
+            sb_blending._m_vertex_src = readFileToString("res/shaders/vertex_depth.glsl");
+            sb_blending._m_fragment_src = readFileToString("res/shaders/fragment_blending.glsl");
 
         } catch (const std::runtime_error &e) {
             std::cerr << e.what();
@@ -147,25 +143,20 @@ int main(void) {
             // positions          // texture Coords (note we set these higher
             // than 1 (together with GL_REPEAT as texture wrapping mode). this
             // will cause the floor texture to repeat)
-            5.0f, -0.5f, 5.0f,  2.0f,  0.0f,  -5.0f, -0.5f, 5.0f,
-            0.0f, 0.0f,  -5.0f, -0.5f, -5.0f, 0.0f,  2.0f,
+            5.0f, -0.5f, 5.0f, 2.0f, 0.0f, -5.0f, -0.5f, 5.0f,  0.0f, 0.0f, -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
 
-            5.0f, -0.5f, 5.0f,  2.0f,  0.0f,  -5.0f, -0.5f, -5.0f,
-            0.0f, 2.0f,  5.0f,  -0.5f, -5.0f, 2.0f,  2.0f};
+            5.0f, -0.5f, 5.0f, 2.0f, 0.0f, -5.0f, -0.5f, -5.0f, 0.0f, 2.0f, 5.0f,  -0.5f, -5.0f, 2.0f, 2.0f};
         // cube VAO
         unsigned int cubeVAO, cubeVBO;
         glGenVertexArrays(1, &cubeVAO);
         glGenBuffers(1, &cubeVBO);
         glBindVertexArray(cubeVAO);
         glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices,
-                     GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                              (void *)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                              (void *)(3 * sizeof(float)));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
         glBindVertexArray(0);
         // plane VAO
         unsigned int planeVAO, planeVBO;
@@ -173,55 +164,46 @@ int main(void) {
         glGenBuffers(1, &planeVBO);
         glBindVertexArray(planeVAO);
         glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices,
-                     GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                              (void *)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                              (void *)(3 * sizeof(float)));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
         glBindVertexArray(0);
 
         // vegetation
-        float vegetationVertices[] = {
-            // positions          // texture Coords (note we set these higher
-            // than 1 (together with GL_REPEAT as texture wrapping mode). this
-            // will cause the floor texture to repeat)
-            0.0f, -0.5f, 0.0f, 0.0f, 0.0f,
+        float vegetationVertices[] = {// positions          // texture Coords (note we set these higher
+                                      // than 1 (together with GL_REPEAT as texture wrapping mode). this
+                                      // will cause the floor texture to repeat)
+                                      0.0f, -0.5f, 0.0f, 0.0f, 0.0f,
 
-            1.0f, -0.5f, 0.0f, 1.0f, 0.0f,
+                                      1.0f, -0.5f, 0.0f, 1.0f, 0.0f,
 
-            0.0f, 0.5f,  0.0f, 0.0f, 1.0f,
+                                      0.0f, 0.5f,  0.0f, 0.0f, 1.0f,
 
-            0.0f, 0.5f,  0.0f, 0.0f, 1.0f,
+                                      0.0f, 0.5f,  0.0f, 0.0f, 1.0f,
 
-            1.0f, -0.5f, 0.0f, 1.0f, 0.0f,
+                                      1.0f, -0.5f, 0.0f, 1.0f, 0.0f,
 
-            1.0f, 0.5f,  0.0f, 1.0f, 1.0f};
+                                      1.0f, 0.5f,  0.0f, 1.0f, 1.0f};
 
         glm::vec3 vegetation[] = {
-            glm::vec3(-1.5f, 0.0f, -0.48f), glm::vec3(1.5f, 0.0f, 0.51f),
-            glm::vec3(0.0f, 0.0f, 0.7f),    glm::vec3(-0.3f, 0.0f, -2.3f),
-            glm::vec3(0.5f, 0.0f, -0.6f),
+            glm::vec3(-1.5f, 0.0f, -0.48f), glm::vec3(1.5f, 0.0f, 0.51f), glm::vec3(0.0f, 0.0f, 0.7f),
+            glm::vec3(-0.3f, 0.0f, -2.3f),  glm::vec3(0.5f, 0.0f, -0.6f),
         };
 
-        Texture grassTexture{"res/textures/blending_transparent_window.png",
-                             ""};
+        Texture grassTexture{"res/textures/blending_transparent_window.png", ""};
 
         unsigned int vegetationVAO, vegetationVBO;
         glGenVertexArrays(1, &vegetationVAO);
         glGenBuffers(1, &vegetationVBO);
         glBindVertexArray(vegetationVAO);
         glBindBuffer(GL_ARRAY_BUFFER, vegetationVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vegetationVertices),
-                     &vegetationVertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vegetationVertices), &vegetationVertices, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                              (void *)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                              (void *)(3 * sizeof(float)));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
         glBindVertexArray(0);
 
         glEnable(GL_BLEND);
@@ -278,13 +260,11 @@ int main(void) {
             glEnable(GL_DEPTH_TEST);
 
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
-                    GL_STENCIL_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
             // view/projection transformations
             glm::mat4 projection =
-                glm::perspective(glm::radians(camera.m_zoom),
-                                 (float)width / (float)height, 0.1f, 100.0f);
+                glm::perspective(glm::radians(camera.m_zoom), (float)width / (float)height, 0.1f, 100.0f);
             glm::mat4 view = camera.get_view_matrix();
             shader->use();
             shader->set_mat4("projection", projection);
@@ -357,8 +337,7 @@ int main(void) {
 
                 std::map<float, glm::vec3> sorted;
                 for (unsigned int i = 0; i < 5; i++) {
-                    float distance =
-                        glm::length(camera.m_position - vegetation[i]);
+                    float distance = glm::length(camera.m_position - vegetation[i]);
                     sorted[distance] = vegetation[i];
                 }
 
@@ -367,14 +346,10 @@ int main(void) {
                 glBindVertexArray(vegetationVAO);
                 glBindTexture(GL_TEXTURE_2D, grassTexture.id);
 
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                                GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-                                GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-                for (std::map<float, glm::vec3>::reverse_iterator it =
-                         sorted.rbegin();
-                     it != sorted.rend(); it++) {
+                for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); it++) {
                     glm::mat4 m{1.0f};
                     m = glm::translate(m, it->second);
                     shader_blending->set_mat4("model", m);
@@ -393,9 +368,7 @@ int main(void) {
     return 0;
 }
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); }
 
 float lastX = 400.0f, lastY = 300.0f;
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
@@ -414,6 +387,4 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     camera.rotate(xoffset, yoffset);
 }
 
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-    camera.zoom(yoffset);
-}
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) { camera.zoom(yoffset); }

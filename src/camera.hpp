@@ -28,8 +28,7 @@ class Camera {
     float m_rotational_speed;
     float m_zoom;
 
-    Camera(glm::vec3 position = glm::vec3(),
-           glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = DEFAULT_YAW,
+    Camera(glm::vec3 position = glm::vec3(), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = DEFAULT_YAW,
            float pitch = DEFAULT_PITCH);
 
     glm::mat4 get_view_matrix();

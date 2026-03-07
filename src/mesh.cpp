@@ -4,8 +4,8 @@
 #include <stb/stb_image.h>
 #include <stdexcept>
 
-Mesh::Mesh(const std::string &name, std::vector<Vertex> vertices,
-           std::vector<unsigned int> indices, std::vector<Texture> textures)
+Mesh::Mesh(const std::string &name, std::vector<Vertex> vertices, std::vector<unsigned int> indices,
+           std::vector<Texture> textures)
     : vertices(vertices), indices(indices), textures(textures), name(name) {
     setup_mesh();
 }
@@ -46,12 +46,10 @@ void Mesh::setup_mesh() {
     glBindVertexArray(vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex),
-                 &vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
-                 &indices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
     // Vertex positions
     glEnableVertexAttribArray(0);
@@ -59,19 +57,16 @@ void Mesh::setup_mesh() {
 
     // Vertex normals
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          (void *)offsetof(Vertex, normal));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, normal));
 
     // Texture coords
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          (void *)offsetof(Vertex, tex_coord));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, tex_coord));
 
     glBindVertexArray(0);
 }
 
-Texture::Texture(const std::string &file_path, const std::string &type)
-    : type(type), file_path(file_path) {
+Texture::Texture(const std::string &file_path, const std::string &type) : type(type), file_path(file_path) {
     glGenTextures(1, &id);
 
     int width, height, k;
@@ -93,14 +88,12 @@ Texture::Texture(const std::string &file_path, const std::string &type)
     }
 
     glBindTexture(GL_TEXTURE_2D, id);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
-                 GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                    GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     stbi_image_free(data);

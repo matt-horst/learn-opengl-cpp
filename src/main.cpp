@@ -4,10 +4,10 @@
 
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include <map>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -100,30 +100,49 @@ int main(void) {
         // set up vertex data (and buffer(s)) and configure vertex attributes
         // ------------------------------------------------------------------
         float cubeVertices[] = {
-            // positions          // texture Coords
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.5f,  -0.5f, -0.5f, 1.0f, 0.0f,
-            0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
-            -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-
-            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, 0.5f,  -0.5f, 0.5f,  1.0f, 0.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-            -0.5f, 0.5f,  0.5f,  0.0f, 1.0f, -0.5f, -0.5f, 0.5f,  0.0f, 0.0f,
-
-            -0.5f, 0.5f,  0.5f,  1.0f, 0.0f, -0.5f, 0.5f,  -0.5f, 1.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, -0.5f, 0.5f,  0.5f,  1.0f, 0.0f,
-
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
-            0.5f,  -0.5f, -0.5f, 0.0f, 1.0f, 0.5f,  -0.5f, -0.5f, 0.0f, 1.0f,
-            0.5f,  -0.5f, 0.5f,  0.0f, 0.0f, 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.5f,  -0.5f, -0.5f, 1.0f, 1.0f,
-            0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, 0.5f,  -0.5f, 0.5f,  1.0f, 0.0f,
-            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-
-            -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            -0.5f, 0.5f,  0.5f,  0.0f, 0.0f, -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f};
+            // Back face
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // Bottom-left
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,   // top-right
+            0.5f, -0.5f, -0.5f, 1.0f, 0.0f,  // bottom-right
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,   // top-right
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // bottom-left
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,  // top-left
+            // Front face
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, // bottom-left
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,  // bottom-right
+            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,   // top-right
+            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,   // top-right
+            -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,  // top-left
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, // bottom-left
+            // Left face
+            -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,   // top-right
+            -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,  // top-left
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, // bottom-left
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, // bottom-left
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,  // bottom-right
+            -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,   // top-right
+                                             // Right face
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,    // top-left
+            0.5f, -0.5f, -0.5f, 0.0f, 1.0f,  // bottom-right
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,   // top-right
+            0.5f, -0.5f, -0.5f, 0.0f, 1.0f,  // bottom-right
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,    // top-left
+            0.5f, -0.5f, 0.5f, 0.0f, 0.0f,   // bottom-left
+            // Bottom face
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, // top-right
+            0.5f, -0.5f, -0.5f, 1.0f, 1.0f,  // top-left
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,   // bottom-left
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,   // bottom-left
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,  // bottom-right
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, // top-right
+            // Top face
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, // top-left
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,   // bottom-right
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,  // top-right
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,   // bottom-right
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, // top-left
+            -0.5f, 0.5f, 0.5f, 0.0f, 0.0f   // bottom-left
+        };
         float planeVertices[] = {
             // positions          // texture Coords (note we set these higher
             // than 1 (together with GL_REPEAT as texture wrapping mode). this
@@ -173,13 +192,13 @@ int main(void) {
 
             1.0f, -0.5f, 0.0f, 1.0f, 0.0f,
 
-            0.0f, 0.5f, 0.0f, 0.0f, 1.0f,
+            0.0f, 0.5f,  0.0f, 0.0f, 1.0f,
 
-            0.0f, 0.5f, 0.0f, 0.0f, 1.0f,
+            0.0f, 0.5f,  0.0f, 0.0f, 1.0f,
 
             1.0f, -0.5f, 0.0f, 1.0f, 0.0f,
 
-            1.0f, 0.5f, 0.0f, 1.0f, 1.0f};
+            1.0f, 0.5f,  0.0f, 1.0f, 1.0f};
 
         glm::vec3 vegetation[] = {
             glm::vec3(-1.5f, 0.0f, -0.48f), glm::vec3(1.5f, 0.0f, 0.51f),
@@ -187,7 +206,8 @@ int main(void) {
             glm::vec3(0.5f, 0.0f, -0.6f),
         };
 
-        Texture grassTexture{"res/textures/blending_transparent_window.png", ""};
+        Texture grassTexture{"res/textures/blending_transparent_window.png",
+                             ""};
 
         unsigned int vegetationVAO, vegetationVBO;
         glGenVertexArrays(1, &vegetationVAO);
@@ -219,6 +239,9 @@ int main(void) {
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_STENCIL_TEST);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glFrontFace(GL_CW);
         glDepthFunc(GL_LESS);
 
         while (!glfwWindowShouldClose(window)) {
@@ -334,7 +357,8 @@ int main(void) {
 
                 std::map<float, glm::vec3> sorted;
                 for (unsigned int i = 0; i < 5; i++) {
-                    float distance = glm::length(camera.m_position - vegetation[i]);
+                    float distance =
+                        glm::length(camera.m_position - vegetation[i]);
                     sorted[distance] = vegetation[i];
                 }
 
@@ -343,10 +367,14 @@ int main(void) {
                 glBindVertexArray(vegetationVAO);
                 glBindTexture(GL_TEXTURE_2D, grassTexture.id);
 
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                                GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                                GL_CLAMP_TO_EDGE);
 
-                for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); it++) {
+                for (std::map<float, glm::vec3>::reverse_iterator it =
+                         sorted.rbegin();
+                     it != sorted.rend(); it++) {
                     glm::mat4 m{1.0f};
                     m = glm::translate(m, it->second);
                     shader_blending->set_mat4("model", m);

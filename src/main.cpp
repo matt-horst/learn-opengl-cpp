@@ -68,14 +68,10 @@ int main(void) {
         return EXIT_FAILURE;
     }
     {
-        ShaderBuilder sb, sb_normal;
+        ShaderBuilder sb;
         try {
-            sb.m_vertex_src = readFileToString("res/shaders/vertex_diff.glsl");
-            sb.m_fragment_src = readFileToString("res/shaders/fragment_explode.glsl");
-
-            sb_normal.m_geometry_src = readFileToString("res/shaders/geometry_normal.glsl");
-            sb_normal.m_vertex_src = readFileToString("res/shaders/vertex_normal.glsl");
-            sb_normal.m_fragment_src = readFileToString("res/shaders/fragment_normal.glsl");
+            sb.m_vertex_src = readFileToString("res/shaders/vertex_instance.glsl");
+            sb.m_fragment_src = readFileToString("res/shaders/fragment_instance.glsl");
         } catch (const std::runtime_error& e) {
             std::cerr << e.what();
             return EXIT_FAILURE;
@@ -84,7 +80,6 @@ int main(void) {
         std::unique_ptr<Shader> shader, shader_normal;
         try {
             shader = sb.build();
-            shader_normal = sb_normal.build();
         } catch (const std::runtime_error& e) {
             std::cerr << e.what();
             return EXIT_FAILURE;
@@ -100,7 +95,7 @@ int main(void) {
 
         stbi_set_flip_vertically_on_load(false);
 
-        Model model_backpack("res/models/backpack/backpack.obj");
+        // Model model_backpack("res/models/backpack/backpack.obj");
 
         // set up vertex data (and buffer(s)) and configure vertex attributes
         // ------------------------------------------------------------------
@@ -151,6 +146,18 @@ int main(void) {
             0.5f,  -0.5f, 0.0f, 0.0f, 1.0f,  // bottom-right
             -0.5f, -0.5f, 1.0f, 1.0f, 0.0f   // bottom-left
         };
+        float quadVertices[] = {
+            // positions     // colors
+            -0.05f, 0.05f, 1.0f, 0.0f, 0.0f, 0.05f, -0.05f, 0.0f, 1.0f, 0.0f, -0.05f, -0.05f, 0.0f, 0.0f, 1.0f,
+
+            -0.05f, 0.05f, 1.0f, 0.0f, 0.0f, 0.05f, -0.05f, 0.0f, 1.0f, 0.0f, 0.05f,  0.05f,  0.0f, 1.0f, 1.0f};
+        const float offset = 0.1;
+        std::vector<glm::vec2> translations;
+        for (std::int32_t i = -10; i < 10; i += 2) {
+            for (std::int32_t j = -10; j < 10; j += 2) {
+                translations.push_back(glm::vec2((float)i / 10.0f + offset, (float)j / 10.0f + offset));
+            }
+        }
         // cube VAO
         unsigned int cubeVAO, cubeVBO;
         glGenVertexArrays(1, &cubeVAO);
@@ -182,7 +189,19 @@ int main(void) {
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) (2 * sizeof(float)));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+        glBindVertexArray(0);
+        // quadsVAO
+        std::uint32_t VAO, VBO;
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (2 * sizeof(float)));
         glBindVertexArray(0);
 
         // load textures
@@ -239,21 +258,12 @@ int main(void) {
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            shader_normal->use();
-            shader_normal->set_mat4("model", glm::mat4(1.0f));
-            shader_normal->set_mat4("view", camera.get_view_matrix());
-            shader_normal->set_mat4("projection", glm::perspective(glm::radians(45.0f), (float) SCR_WIDTH / (float) SCR_HEIGHT, 1.0f, 100.0f));
-
-            model_backpack.draw(*shader_normal);
-
             shader->use();
-            shader->set_mat4("model", glm::mat4(1.0f));
-            shader->set_mat4("view", camera.get_view_matrix());
-            shader->set_mat4("projection", glm::perspective(glm::radians(45.0f), (float) SCR_WIDTH / (float) SCR_HEIGHT, 1.0f, 100.0f));
-
-            // cubes
-            model_backpack.draw(*shader);
-
+            for (std::uint32_t i = 0; i < 100; i++) {
+                shader->set_vec2("offsets[" + std::to_string(i) + "]", translations[i]);
+            }
+            glBindVertexArray(VAO);
+            glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100);
 
             // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             // -------------------------------------------------------------------------------

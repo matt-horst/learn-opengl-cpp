@@ -67,21 +67,27 @@ int main(void) {
         return EXIT_FAILURE;
     }
     {
-        ShaderBuilder sb, sb_skybox;
+        ShaderBuilder sb_red, sb_blue, sb_green, sb_yellow;
         try {
-            sb._m_vertex_src = readFileToString("res/shaders/vertex_fragcoord.glsl");
-            sb._m_fragment_src = readFileToString("res/shaders/fragment_fragcoord.glsl");
-            sb_skybox._m_vertex_src = readFileToString("res/shaders/vertex_skybox.glsl");
-            sb_skybox._m_fragment_src = readFileToString("res/shaders/fragment_skybox.glsl");
+            sb_red._m_vertex_src = readFileToString("res/shaders/vertex_uniformbuffer.glsl");
+            sb_red._m_fragment_src = readFileToString("res/shaders/fragment_red.glsl");
+            sb_blue._m_vertex_src = readFileToString("res/shaders/vertex_uniformbuffer.glsl");
+            sb_blue._m_fragment_src = readFileToString("res/shaders/fragment_blue.glsl");
+            sb_green._m_vertex_src = readFileToString("res/shaders/vertex_uniformbuffer.glsl");
+            sb_green._m_fragment_src = readFileToString("res/shaders/fragment_green.glsl");
+            sb_yellow._m_vertex_src = readFileToString("res/shaders/vertex_uniformbuffer.glsl");
+            sb_yellow._m_fragment_src = readFileToString("res/shaders/fragment_yellow.glsl");
         } catch (const std::runtime_error& e) {
             std::cerr << e.what();
             return EXIT_FAILURE;
         }
 
-        std::unique_ptr<Shader> shader, shader_skybox;
+        std::unique_ptr<Shader> shader_red, shader_blue, shader_green, shader_yellow;
         try {
-            shader = sb.build();
-            shader_skybox = sb_skybox.build();
+            shader_red = sb_red.build();
+            shader_blue = sb_blue.build();
+            shader_green = sb_green.build();
+            shader_yellow = sb_yellow.build();
         } catch (const std::runtime_error& e) {
             std::cerr << e.what();
             return EXIT_FAILURE;
@@ -164,6 +170,25 @@ int main(void) {
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
+        std::uint32_t uniform_block_index_red = glGetUniformBlockIndex(shader_red->_m_id, "Matrices");
+        std::uint32_t uniform_block_index_blue = glGetUniformBlockIndex(shader_blue->_m_id, "Matrices");
+        std::uint32_t uniform_block_index_green = glGetUniformBlockIndex(shader_green->_m_id, "Matrices");
+        std::uint32_t uniform_block_index_yellow = glGetUniformBlockIndex(shader_yellow->_m_id, "Matrices");
+
+        glUniformBlockBinding(shader_red->_m_id, uniform_block_index_red, 0);
+        glUniformBlockBinding(shader_blue->_m_id, uniform_block_index_blue, 0);
+        glUniformBlockBinding(shader_green->_m_id, uniform_block_index_green, 0);
+        glUniformBlockBinding(shader_yellow->_m_id, uniform_block_index_yellow, 0);
+
+        std::uint32_t uboMatrices;
+        glGenBuffers(1, &uboMatrices);
+
+        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+        glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
+
         // load textures
         // -------------
         Texture cubeTexture{"res/textures/container.jpg", ""};
@@ -175,18 +200,16 @@ int main(void) {
         };
         const auto skyboxCubemap = load_cubemap(faces);
 
-        // shader configuration
-        // --------------------
-        shader->use();
-        shader->set_i("texture1", 0);
-
-        shader_skybox->use();
-        shader_skybox->set_i("skybox", 0);
-
         glfwSetWindowSize(window, 800, 600);
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
         glEnable(GL_PROGRAM_POINT_SIZE);
+
+        glm::mat4 projection =
+            glm::perspective(glm::radians(camera.m_zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         while (!glfwWindowShouldClose(window)) {
             const float current_frame = glfwGetTime();
@@ -226,37 +249,33 @@ int main(void) {
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            shader->use();
-            glm::mat4 model = glm::mat4(1.0f);
             glm::mat4 view = camera.get_view_matrix();
-            glm::mat4 projection =
-                glm::perspective(glm::radians(camera.m_zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-            shader->set_mat4("model", model);
-            shader->set_mat4("view", view);
-            shader->set_mat4("projection", projection);
-            shader->set_vec3("cameraPos", camera.m_position);
-
-            shader_skybox->use();
-            shader_skybox->set_mat4("view", glm::mat4(glm::mat3(view)));
-            shader_skybox->set_mat4("projection", projection);
+            glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+            glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+            glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
             // cubes
-            shader->use();
             // model_backpack.draw(*shader);
+            // RED
+            shader_red->use();
+            shader_red->set_mat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(-0.75f, 0.75f, 0.0f)));
             glBindVertexArray(cubeVAO);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, cubeTexture.id);
             glDrawArrays(GL_TRIANGLES, 0, 36);
 
-            // skybox
-            glDepthFunc(GL_LEQUAL);
-            shader_skybox->use();
-            glDepthMask(GL_FALSE);
-            glBindVertexArray(skyboxVAO);
-            glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxCubemap);
+            shader_blue->use();
+            shader_blue->set_mat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(0.75f, 0.75f, 0.0f)));
+            glBindVertexArray(cubeVAO);
             glDrawArrays(GL_TRIANGLES, 0, 36);
-            glDepthMask(GL_TRUE);
-            glDepthFunc(GL_LESS);
+
+            shader_green->use();
+            shader_green->set_mat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(-0.75f, -0.75f, 0.0f)));
+            glBindVertexArray(cubeVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+
+            shader_yellow->use();
+            shader_yellow->set_mat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(0.75f, -0.75f, 0.0f)));
+            glBindVertexArray(cubeVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
 
             // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             // -------------------------------------------------------------------------------

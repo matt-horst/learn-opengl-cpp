@@ -68,19 +68,23 @@ int main(void) {
         return EXIT_FAILURE;
     }
     {
-        ShaderBuilder sb;
+        ShaderBuilder sb, sb_normal;
         try {
-            sb.m_geometry_src = readFileToString("res/shaders/geometry_explode.glsl");
-            sb.m_vertex_src = readFileToString("res/shaders/vertex_explode.glsl");
+            sb.m_vertex_src = readFileToString("res/shaders/vertex_diff.glsl");
             sb.m_fragment_src = readFileToString("res/shaders/fragment_explode.glsl");
+
+            sb_normal.m_geometry_src = readFileToString("res/shaders/geometry_normal.glsl");
+            sb_normal.m_vertex_src = readFileToString("res/shaders/vertex_normal.glsl");
+            sb_normal.m_fragment_src = readFileToString("res/shaders/fragment_normal.glsl");
         } catch (const std::runtime_error& e) {
             std::cerr << e.what();
             return EXIT_FAILURE;
         }
 
-        std::unique_ptr<Shader> shader;
+        std::unique_ptr<Shader> shader, shader_normal;
         try {
             shader = sb.build();
+            shader_normal = sb_normal.build();
         } catch (const std::runtime_error& e) {
             std::cerr << e.what();
             return EXIT_FAILURE;
@@ -235,14 +239,21 @@ int main(void) {
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+            shader_normal->use();
+            shader_normal->set_mat4("model", glm::mat4(1.0f));
+            shader_normal->set_mat4("view", camera.get_view_matrix());
+            shader_normal->set_mat4("projection", glm::perspective(glm::radians(45.0f), (float) SCR_WIDTH / (float) SCR_HEIGHT, 1.0f, 100.0f));
+
+            model_backpack.draw(*shader_normal);
+
             shader->use();
-            shader->set_f("time", glfwGetTime());
             shader->set_mat4("model", glm::mat4(1.0f));
             shader->set_mat4("view", camera.get_view_matrix());
             shader->set_mat4("projection", glm::perspective(glm::radians(45.0f), (float) SCR_WIDTH / (float) SCR_HEIGHT, 1.0f, 100.0f));
 
             // cubes
             model_backpack.draw(*shader);
+
 
             // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             // -------------------------------------------------------------------------------

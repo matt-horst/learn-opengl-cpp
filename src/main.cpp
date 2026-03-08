@@ -69,8 +69,8 @@ int main(void) {
     {
         ShaderBuilder sb, sb_skybox;
         try {
-            sb._m_vertex_src = readFileToString("res/shaders/vertex_reflect.glsl");
-            sb._m_fragment_src = readFileToString("res/shaders/fragment_refract.glsl");
+            sb._m_vertex_src = readFileToString("res/shaders/vertex_pointsize.glsl");
+            sb._m_fragment_src = readFileToString("res/shaders/fragment_pointsize.glsl");
             sb_skybox._m_vertex_src = readFileToString("res/shaders/vertex_skybox.glsl");
             sb_skybox._m_fragment_src = readFileToString("res/shaders/fragment_skybox.glsl");
         } catch (const std::runtime_error& e) {
@@ -97,7 +97,7 @@ int main(void) {
 
         stbi_set_flip_vertically_on_load(false);
 
-        Model model_backpack("res/models/backpack/backpack.obj");
+        // Model model_backpack("res/models/backpack/backpack.obj");
 
         // set up vertex data (and buffer(s)) and configure vertex attributes
         // ------------------------------------------------------------------
@@ -166,7 +166,7 @@ int main(void) {
 
         // load textures
         // -------------
-        // Texture cubeTexture{"res/textures/container.jpg", ""};
+        Texture cubeTexture{"res/textures/container.jpg", ""};
         // Texture floorTexture{"res/textures/metal.png", ""};
 
         std::vector<std::string> faces = {
@@ -178,13 +178,15 @@ int main(void) {
         // shader configuration
         // --------------------
         shader->use();
-        shader->set_i("skybox", 0);
+        shader->set_i("texture1", 0);
 
         shader_skybox->use();
         shader_skybox->set_i("skybox", 0);
 
         glfwSetWindowSize(window, 800, 600);
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+
+        glEnable(GL_PROGRAM_POINT_SIZE);
 
         while (!glfwWindowShouldClose(window)) {
             const float current_frame = glfwGetTime();
@@ -240,11 +242,11 @@ int main(void) {
 
             // cubes
             shader->use();
-            model_backpack.draw(*shader);
-            // glBindVertexArray(cubeVAO);
-            // glActiveTexture(GL_TEXTURE0);
-            // glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxCubemap);
-            // glDrawArrays(GL_TRIANGLES, 0, 36);
+            // model_backpack.draw(*shader);
+            glBindVertexArray(cubeVAO);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, cubeTexture.id);
+            glDrawArrays(GL_POINTS, 0, 36);
 
             // skybox
             glDepthFunc(GL_LEQUAL);

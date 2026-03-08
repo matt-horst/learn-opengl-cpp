@@ -69,8 +69,8 @@ int main(void) {
     {
         ShaderBuilder sb, sb_skybox;
         try {
-            sb._m_vertex_src = readFileToString("res/shaders/vertex_pointsize.glsl");
-            sb._m_fragment_src = readFileToString("res/shaders/fragment_pointsize.glsl");
+            sb._m_vertex_src = readFileToString("res/shaders/vertex_fragcoord.glsl");
+            sb._m_fragment_src = readFileToString("res/shaders/fragment_fragcoord.glsl");
             sb_skybox._m_vertex_src = readFileToString("res/shaders/vertex_skybox.glsl");
             sb_skybox._m_fragment_src = readFileToString("res/shaders/fragment_skybox.glsl");
         } catch (const std::runtime_error& e) {
@@ -246,7 +246,7 @@ int main(void) {
             glBindVertexArray(cubeVAO);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, cubeTexture.id);
-            glDrawArrays(GL_POINTS, 0, 36);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
 
             // skybox
             glDepthFunc(GL_LEQUAL);

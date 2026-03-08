@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "glm/fwd.hpp"
 
@@ -69,9 +70,9 @@ int main(void) {
     {
         ShaderBuilder sb;
         try {
-            sb.m_geometry_src = readFileToString("res/shaders/geometry_geo.glsl");
-            sb.m_vertex_src = readFileToString("res/shaders/vertex_geo.glsl");
-            sb.m_fragment_src = readFileToString("res/shaders/fragment_geo.glsl");
+            sb.m_geometry_src = readFileToString("res/shaders/geometry_explode.glsl");
+            sb.m_vertex_src = readFileToString("res/shaders/vertex_explode.glsl");
+            sb.m_fragment_src = readFileToString("res/shaders/fragment_explode.glsl");
         } catch (const std::runtime_error& e) {
             std::cerr << e.what();
             return EXIT_FAILURE;
@@ -95,7 +96,7 @@ int main(void) {
 
         stbi_set_flip_vertically_on_load(false);
 
-        // Model model_backpack("res/models/backpack/backpack.obj");
+        Model model_backpack("res/models/backpack/backpack.obj");
 
         // set up vertex data (and buffer(s)) and configure vertex attributes
         // ------------------------------------------------------------------
@@ -234,12 +235,14 @@ int main(void) {
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            // cubes
-            // model_backpack.draw(*shader);
-            // RED
             shader->use();
-            glBindVertexArray(pointsVAO);
-            glDrawArrays(GL_POINTS, 0, 4);
+            shader->set_f("time", glfwGetTime());
+            shader->set_mat4("model", glm::mat4(1.0f));
+            shader->set_mat4("view", camera.get_view_matrix());
+            shader->set_mat4("projection", glm::perspective(glm::radians(45.0f), (float) SCR_WIDTH / (float) SCR_HEIGHT, 1.0f, 100.0f));
+
+            // cubes
+            model_backpack.draw(*shader);
 
             // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             // -------------------------------------------------------------------------------

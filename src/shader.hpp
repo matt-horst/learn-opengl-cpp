@@ -11,7 +11,7 @@ std::string readFileToString(const std::string& filename);
 
 class Shader {
    public:
-    unsigned int _m_id;
+    unsigned int m_id;
 
     void use();
     Shader(unsigned int id);
@@ -29,12 +29,14 @@ class Shader {
 
 class ShaderBuilder {
    public:
-    std::string _m_vertex_src;
-    std::string _m_fragment_src;
+    std::string m_vertex_src = "";
+    std::string m_fragment_src = "";
+    std::string m_geometry_src = "";
 
     std::unique_ptr<Shader> build();
 
    private:
+    unsigned int compile_shader(unsigned int type, const char* src);
 };
 
 #endif

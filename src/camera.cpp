@@ -1,9 +1,16 @@
 #include "camera.hpp"
+
 #include <glm/common.hpp>
 
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
-    : m_position(position), m_front(glm::vec3(0.0f, 0.0f, -1.0f)), m_world_up(up), m_yaw(yaw), m_pitch(pitch),
-      m_panning_speed(DEFAULT_PANNING_SPEED), m_rotational_speed(DEFAULT_ROTATIONAL_SPEED), m_zoom(DEFAULT_ZOOM) {
+    : m_position(position),
+      m_front(glm::vec3(0.0f, 0.0f, -1.0f)),
+      m_world_up(up),
+      m_yaw(yaw),
+      m_pitch(pitch),
+      m_panning_speed(DEFAULT_PANNING_SPEED),
+      m_rotational_speed(DEFAULT_ROTATIONAL_SPEED),
+      m_zoom(DEFAULT_ZOOM) {
     update_vectors();
 }
 
@@ -12,18 +19,18 @@ glm::mat4 Camera::get_view_matrix() { return glm::lookAt(m_position, m_position 
 void Camera::pan(PanMovement direction, float delta_time) {
     const float delta = m_panning_speed * delta_time;
     switch (direction) {
-    case PanMovement::FORWARD:
-        m_position += m_front * delta;
-        break;
-    case PanMovement::BACK:
-        m_position -= m_front * delta;
-        break;
-    case PanMovement::RIGHT:
-        m_position += m_right * delta;
-        break;
-    case PanMovement::LEFT:
-        m_position -= m_right * delta;
-        break;
+        case PanMovement::FORWARD:
+            m_position += m_front * delta;
+            break;
+        case PanMovement::BACK:
+            m_position -= m_front * delta;
+            break;
+        case PanMovement::RIGHT:
+            m_position += m_right * delta;
+            break;
+        case PanMovement::LEFT:
+            m_position -= m_right * delta;
+            break;
     }
 }
 

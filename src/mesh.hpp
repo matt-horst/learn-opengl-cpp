@@ -1,11 +1,11 @@
 #ifndef MESH_HPP
 #define MESH_HPP
 
-#include "shader.hpp"
-
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
+
+#include "shader.hpp"
 
 struct Vertex {
     glm::vec3 position, normal;
@@ -17,24 +17,24 @@ struct Texture {
     std::string type;
     std::string file_path;
 
-    Texture(const std::string &file_path, const std::string &type);
+    Texture(const std::string& file_path, const std::string& type);
 };
 
 class Mesh {
-  public:
+   public:
     // Mesh Data
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
     std::vector<Texture> textures;
 
-    Mesh(const std::string &name, std::vector<Vertex> vertices, std::vector<unsigned int> indices,
+    Mesh(const std::string& name, std::vector<Vertex> vertices, std::vector<unsigned int> indices,
          std::vector<Texture> textures);
 
-    void draw(const Shader &shader) const;
+    void draw(const Shader& shader) const;
 
     const std::string name;
 
-  private:
+   private:
     unsigned int vao, vbo, ebo;
     void setup_mesh();
 };

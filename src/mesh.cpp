@@ -1,16 +1,19 @@
 #include "mesh.hpp"
-#include "shader.hpp"
-#include <cstdio>
+
 #include <stb/stb_image.h>
+
+#include <cstdio>
 #include <stdexcept>
 
-Mesh::Mesh(const std::string &name, std::vector<Vertex> vertices, std::vector<unsigned int> indices,
+#include "shader.hpp"
+
+Mesh::Mesh(const std::string& name, std::vector<Vertex> vertices, std::vector<unsigned int> indices,
            std::vector<Texture> textures)
     : vertices(vertices), indices(indices), textures(textures), name(name) {
     setup_mesh();
 }
 
-void Mesh::draw(const Shader &shader) const {
+void Mesh::draw(const Shader& shader) const {
     unsigned int diffuse_n = 1;
     unsigned int specular_n = 1;
 
@@ -53,24 +56,24 @@ void Mesh::setup_mesh() {
 
     // Vertex positions
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
 
     // Vertex normals
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, normal));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 
     // Texture coords
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, tex_coord));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tex_coord));
 
     glBindVertexArray(0);
 }
 
-Texture::Texture(const std::string &file_path, const std::string &type) : type(type), file_path(file_path) {
+Texture::Texture(const std::string& file_path, const std::string& type) : type(type), file_path(file_path) {
     glGenTextures(1, &id);
 
     int width, height, k;
-    unsigned char *data = stbi_load(file_path.c_str(), &width, &height, &k, 0);
+    unsigned char* data = stbi_load(file_path.c_str(), &width, &height, &k, 0);
 
     if (data == NULL) {
         throw std::runtime_error("couldn't load image file: " + file_path);

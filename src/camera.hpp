@@ -1,9 +1,10 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "glm/fwd.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "glm/fwd.hpp"
 
 enum class PanMovement { FORWARD, BACK, LEFT, RIGHT };
 
@@ -14,7 +15,7 @@ constexpr float DEFAULT_ROTATIONAL_SPEED = 0.1f;
 constexpr float DEFAULT_ZOOM = 45.0f;
 
 class Camera {
-  public:
+   public:
     glm::vec3 m_position;
     glm::vec3 m_front;
     glm::vec3 m_up;
@@ -37,7 +38,7 @@ class Camera {
     void rotate(float dx, float dy);
     void zoom(float delta);
 
-  private:
+   private:
     void update_vectors();
 };
 

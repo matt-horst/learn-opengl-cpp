@@ -70,7 +70,7 @@ int main(void) {
         ShaderBuilder sb, sb_skybox;
         try {
             sb._m_vertex_src = readFileToString("res/shaders/vertex_reflect.glsl");
-            sb._m_fragment_src = readFileToString("res/shaders/fragment_reflect.glsl");
+            sb._m_fragment_src = readFileToString("res/shaders/fragment_refract.glsl");
             sb_skybox._m_vertex_src = readFileToString("res/shaders/vertex_skybox.glsl");
             sb_skybox._m_fragment_src = readFileToString("res/shaders/fragment_skybox.glsl");
         } catch (const std::runtime_error& e) {
@@ -97,7 +97,7 @@ int main(void) {
 
         stbi_set_flip_vertically_on_load(false);
 
-        // Model model("res/models/backpack/backpack.obj");
+        Model model_backpack("res/models/backpack/backpack.obj");
 
         // set up vertex data (and buffer(s)) and configure vertex attributes
         // ------------------------------------------------------------------
@@ -240,10 +240,11 @@ int main(void) {
 
             // cubes
             shader->use();
-            glBindVertexArray(cubeVAO);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxCubemap);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            model_backpack.draw(*shader);
+            // glBindVertexArray(cubeVAO);
+            // glActiveTexture(GL_TEXTURE0);
+            // glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxCubemap);
+            // glDrawArrays(GL_TRIANGLES, 0, 36);
 
             // skybox
             glDepthFunc(GL_LEQUAL);

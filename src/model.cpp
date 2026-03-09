@@ -10,7 +10,6 @@
 #include "glm/fwd.hpp"
 #include "shader.hpp"
 
-std::vector<Texture> loaded_textures;
 
 Model::Model(const std::string& file_path) : directory(file_path.substr(0, file_path.find_last_of('/'))) {
     load_model(file_path);

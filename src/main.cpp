@@ -33,7 +33,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int load_texture(const std::string& path);
 std::uint32_t load_cubemap(std::vector<std::string> faces);
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 50.0f, 155.0f));
 
 #define SCR_WIDTH 800
 #define SCR_HEIGHT 600
@@ -68,18 +68,22 @@ int main(void) {
         return EXIT_FAILURE;
     }
     {
-        ShaderBuilder sb;
+        ShaderBuilder sb, sb_rock;
         try {
-            sb.m_vertex_src = readFileToString("res/shaders/vertex_instance.glsl");
-            sb.m_fragment_src = readFileToString("res/shaders/fragment_instance.glsl");
+            sb.m_vertex_src = readFileToString("res/shaders/vertex_planets.glsl");
+            sb.m_fragment_src = readFileToString("res/shaders/fragment_planets.glsl");
+
+            sb_rock.m_vertex_src = readFileToString("res/shaders/vertex_rock.glsl");
+            sb_rock.m_fragment_src = readFileToString("res/shaders/fragment_rock.glsl");
         } catch (const std::runtime_error& e) {
             std::cerr << e.what();
             return EXIT_FAILURE;
         }
 
-        std::unique_ptr<Shader> shader, shader_normal;
+        std::unique_ptr<Shader> shader, shader_rock;
         try {
             shader = sb.build();
+            shader_rock = sb_rock.build();
         } catch (const std::runtime_error& e) {
             std::cerr << e.what();
             return EXIT_FAILURE;
@@ -93,141 +97,93 @@ int main(void) {
         glfwSetCursorPosCallback(window, mouse_callback);
         glfwSetScrollCallback(window, scroll_callback);
 
-        stbi_set_flip_vertically_on_load(false);
+        // stbi_set_flip_vertically_on_load(false);
 
-        // Model model_backpack("res/models/backpack/backpack.obj");
+        std::uint32_t amount = 100000;
+        std::vector<glm::mat4> modelMatrices(amount, glm::mat4(1.0f));
+        srand(glfwGetTime());
+        float radius = 150.0f;
+        float offset = 25.0f;
 
-        // set up vertex data (and buffer(s)) and configure vertex attributes
-        // ------------------------------------------------------------------
-        float vertices[] = {-0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.5f,  -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f,
-                            0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f,
-                            -0.5f, 0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f,
+        for (std::uint32_t i = 0; i < amount; i++) {
+            glm::mat4 model = glm::mat4(1.0f);
+            float angle = (float) i / (float) amount * 360.0f;
+            float displacement = (rand() % (int) (2 * offset * 100)) / 100.0f - offset;
+            float x = sin(angle) * radius + displacement;
+            displacement = (rand() % (int) (2 * offset * 100)) / 100.0f - offset;
+            float y = displacement * 0.4f;
+            displacement = (rand() % (int) (2 * offset * 100)) / 100.0f - offset;
+            float z = cos(angle) * radius + offset;
+            model = glm::translate(model, glm::vec3(x, y, z));
 
-                            -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,
-                            0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-                            -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,
+            float scale = (rand() % 20) / 100.0f + 0.05f;
+            model = glm::scale(model, glm::vec3(scale));
 
-                            -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  -0.5f, 0.5f,  -0.5f, -1.0f, 0.0f,  0.0f,
-                            -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,
-                            -0.5f, -0.5f, 0.5f,  -1.0f, 0.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,
+            float rotAngle = (rand() % 360);
+            model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
 
-                            0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.5f,  0.5f,  -0.5f, 1.0f,  0.0f,  0.0f,
-                            0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,  0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,
-                            0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-
-                            -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.5f,  -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,
-                            0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,
-                            -0.5f, -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,
-
-                            -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.5f,  0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,
-                            0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-                            -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f};
-        float skyboxVertices[] = {// positions
-                                  -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
-                                  1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f,
-
-                                  -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f,
-                                  -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,
-
-                                  1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,
-                                  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f,
-
-                                  -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
-                                  1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,
-
-                                  -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,
-                                  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f,
-
-                                  -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f,
-                                  1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f};
-        float points[] = {
-            -0.5f, 0.5f,  1.0f, 0.0f, 0.0f,  // top-left
-            0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  // top-right
-            0.5f,  -0.5f, 0.0f, 0.0f, 1.0f,  // bottom-right
-            -0.5f, -0.5f, 1.0f, 1.0f, 0.0f   // bottom-left
-        };
-        float quadVertices[] = {
-            // positions     // colors
-            -0.05f, 0.05f, 1.0f, 0.0f, 0.0f, 0.05f, -0.05f, 0.0f, 1.0f, 0.0f, -0.05f, -0.05f, 0.0f, 0.0f, 1.0f,
-
-            -0.05f, 0.05f, 1.0f, 0.0f, 0.0f, 0.05f, -0.05f, 0.0f, 1.0f, 0.0f, 0.05f,  0.05f,  0.0f, 1.0f, 1.0f};
-        const float offset = 0.1;
-        std::vector<glm::vec2> translations;
-        for (std::int32_t i = -10; i < 10; i += 2) {
-            for (std::int32_t j = -10; j < 10; j += 2) {
-                translations.push_back(glm::vec2((float)i / 10.0f + offset, (float)j / 10.0f + offset));
-            }
+            modelMatrices[i] = model;
+            // glm::mat4 model = glm::mat4(1.0f);
+            // // 1. translation: displace along circle with 'radius' in range [-offset, offset]
+            // float angle = (float)i / (float)amount * 360.0f;
+            // float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+            // float x = sin(angle) * radius + displacement;
+            // displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+            // float y = displacement * 0.4f;  // keep height of asteroid field smaller compared to width of x and z
+            // displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+            // float z = cos(angle) * radius + displacement;
+            // model = glm::translate(model, glm::vec3(x, y, z));
+            //
+            // // 2. scale: Scale between 0.05 and 0.25f
+            // float scale = static_cast<float>((rand() % 20) / 100.0 + 0.05);
+            // model = glm::scale(model, glm::vec3(scale));
+            //
+            // // 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
+            // float rotAngle = static_cast<float>((rand() % 360));
+            // model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
+            //
+            // // 4. now add to list of matrices
+            // modelMatrices[i] = model;
         }
-        // cube VAO
-        unsigned int cubeVAO, cubeVBO;
-        glGenVertexArrays(1, &cubeVAO);
-        glGenBuffers(1, &cubeVBO);
-        glBindVertexArray(cubeVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-        glBindVertexArray(0);
-        // skybox VAO
-        std::uint32_t skyboxVAO, skyboxVBO;
-        glGenVertexArrays(1, &skyboxVAO);
-        glGenBuffers(1, &skyboxVBO);
-        glBindVertexArray(skyboxVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-        // pointsVAO
-        std::uint32_t pointsVAO, pointsVBO;
-        glGenVertexArrays(1, &pointsVAO);
-        glGenBuffers(1, &pointsVBO);
-        glBindVertexArray(pointsVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, pointsVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(points), &points, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
-        glBindVertexArray(0);
-        // quadsVAO
-        std::uint32_t VAO, VBO;
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
-        glBindVertexArray(VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
-        std::uint32_t instanceVBO;
-        glGenBuffers(1, &instanceVBO);
-        glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-        glBufferData(GL_ARRAY_BUFFER, 100 * sizeof(glm::vec2), &translations[0], GL_STATIC_DRAW);
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glVertexAttribDivisor(2, 1);
 
-        glBindVertexArray(0);
+        Model planetModel = Model("res/models/planet/planet.obj");
+        Model rockModel = Model("res/models/rock/rock.obj");
 
-        // load textures
-        // -------------
-        Texture cubeTexture{"res/textures/container.jpg", ""};
-        // Texture floorTexture{"res/textures/metal.png", ""};
+        std::uint32_t vbo;
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
 
-        std::vector<std::string> faces = {
-            "res/textures/skybox/right.jpg",  "res/textures/skybox/left.jpg",  "res/textures/skybox/top.jpg",
-            "res/textures/skybox/bottom.jpg", "res/textures/skybox/front.jpg", "res/textures/skybox/back.jpg",
-        };
-        const auto skyboxCubemap = load_cubemap(faces);
+        for (std::uint32_t i = 0; i < rockModel.meshes.size(); i++) {
+            // glBindVertexArray(rockModel.meshes[i].vao);
+            // for (std::uint32_t j = 0; j < 4; j++) {
+            //     glEnableVertexAttribArray(3 + j);
+            //     glVertexAttribPointer(3 + j, 4, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), (void *) (j *
+            //     sizeof(glm::vec4))); glVertexAttribDivisor(3 + j, 1);
+            // }
+            // glBindVertexArray(0);
+            unsigned int VAO = rockModel.meshes[i].vao;
+            glBindVertexArray(VAO);
+            // set attribute pointers for matrix (4 times vec4)
+            glEnableVertexAttribArray(3);
+            glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+            glEnableVertexAttribArray(4);
+            glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+            glEnableVertexAttribArray(5);
+            glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+            glEnableVertexAttribArray(6);
+            glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+            glVertexAttribDivisor(3, 1);
+            glVertexAttribDivisor(4, 1);
+            glVertexAttribDivisor(5, 1);
+            glVertexAttribDivisor(6, 1);
+
+            glBindVertexArray(0);
+        }
 
         glfwSetWindowSize(window, 800, 600);
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-
-        glEnable(GL_PROGRAM_POINT_SIZE);
 
         while (!glfwWindowShouldClose(window)) {
             const float current_frame = glfwGetTime();
@@ -268,8 +224,26 @@ int main(void) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             shader->use();
-            glBindVertexArray(VAO);
-            glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100);
+            shader->set_mat4("model", glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -3.0f, 0.0f)),
+                                                 glm::vec3(4.0f, 4.0f, 4.0f)));
+            shader->set_mat4("view", camera.get_view_matrix());
+            shader->set_mat4("projection", glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT,
+                                                            0.1f, 1000.0f));
+            planetModel.draw(*shader);
+
+            shader_rock->use();
+            shader_rock->set_mat4("view", camera.get_view_matrix());
+            shader_rock->set_mat4("projection", glm::perspective(glm::radians(45.0f),
+                                                                 (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f));
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, planetModel.loaded_textures[0].id);
+            shader_rock->set_i("texture_diffuse1", 0);
+            for (std::uint32_t i = 0; i < rockModel.meshes.size(); i++) {
+                glBindVertexArray(rockModel.meshes[i].vao);
+                glDrawElementsInstanced(GL_TRIANGLES, static_cast<std::uint32_t>(rockModel.meshes[i].indices.size()),
+                                        GL_UNSIGNED_INT, 0, amount);
+                glBindVertexArray(0);
+            }
 
             // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             // -------------------------------------------------------------------------------

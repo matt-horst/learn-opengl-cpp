@@ -34,7 +34,6 @@ class Mesh {
 
     const std::string name;
 
-   private:
     unsigned int vao, vbo, ebo;
     void setup_mesh();
 };

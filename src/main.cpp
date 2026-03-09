@@ -50,6 +50,7 @@ int main(void) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL) {
@@ -62,6 +63,7 @@ int main(void) {
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::fprintf(stderr, "couldn't initialize GLAD");
@@ -184,6 +186,8 @@ int main(void) {
 
         glfwSetWindowSize(window, 800, 600);
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+
+        glEnable(GL_MULTISAMPLE);
 
         while (!glfwWindowShouldClose(window)) {
             const float current_frame = glfwGetTime();

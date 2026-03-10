@@ -37,38 +37,37 @@ std::unique_ptr<Shader> ShaderBuilder::build() {
 
     const unsigned int id = glCreateProgram();
 
-    const unsigned int vertex_id = glCreateShader(GL_VERTEX_SHADER);
-    const char* vs = m_vertex_src.c_str();
-    glShaderSource(vertex_id, 1, &vs, NULL);
-    glCompileShader(vertex_id);
-
-    glGetShaderiv(vertex_id, GL_COMPILE_STATUS, &success);
-
-    if (!success) {
-        glGetShaderInfoLog(vertex_id, buff_size, NULL, infolog);
-
-        throw std::runtime_error("Failed to compile vertex shader: " + std::string(infolog));
-    }
-
     if (!m_geometry_src.empty()) {
         const char *src = m_geometry_src.c_str();
-        const unsigned int shader_id = compile_shader(GL_GEOMETRY_SHADER, src);
-        glAttachShader(id, shader_id);
-        glDeleteShader(shader_id);
+        try {
+            const unsigned int shader_id = compile_shader(GL_GEOMETRY_SHADER, src);
+            glAttachShader(id, shader_id);
+            glDeleteShader(shader_id);
+        } catch (const std::runtime_error &e) {
+            throw std::runtime_error("Geometry Shader Error: \n" + m_geometry_src + std::string(e.what()));
+        }
     }
 
     if (!m_vertex_src.empty()) {
         const char *src = m_vertex_src.c_str();
-        const unsigned int shader_id = compile_shader(GL_VERTEX_SHADER, src);
-        glAttachShader(id, shader_id);
-        glDeleteShader(shader_id);
+        try {
+            const unsigned int shader_id = compile_shader(GL_VERTEX_SHADER, src);
+            glAttachShader(id, shader_id);
+            glDeleteShader(shader_id);
+        } catch (const std::runtime_error &e) {
+            throw std::runtime_error("Vertex Shader Error: \n" + m_vertex_src + std::string(e.what()));
+        }
     }
 
     if (!m_fragment_src.empty()) {
         const char *src = m_fragment_src.c_str();
-        const unsigned int shader_id = compile_shader(GL_FRAGMENT_SHADER, src);
-        glAttachShader(id, shader_id);
-        glDeleteShader(shader_id);
+        try {
+            const unsigned int shader_id = compile_shader(GL_FRAGMENT_SHADER, src);
+            glAttachShader(id, shader_id);
+            glDeleteShader(shader_id);
+        } catch (const std::runtime_error &e) {
+            throw std::runtime_error("Fragment Shader Error: \n" + m_fragment_src + std::string(e.what()));
+        }
     }
 
     glLinkProgram(id);

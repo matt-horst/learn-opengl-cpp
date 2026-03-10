@@ -290,7 +290,7 @@ int main(void) {
             glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
             glClear(GL_DEPTH_BUFFER_BIT);
             //  Use an orthographic projection since light source is directional
-            float near_plane = 1.0f, far_plane = 25.0f, aspect = (float)SCR_WIDTH / (float)SCR_HEIGHT;
+            float near_plane = 1.0f, far_plane = 25.0f, aspect = (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT;
             glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), aspect, near_plane, far_plane);
             std::vector<glm::mat4> lightViews;
             lightViews.push_back(lightProjection * glm::lookAt(lightPos, lightPos + glm::vec3(1.0f, 0.0f, 0.0f),

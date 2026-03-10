@@ -13,7 +13,7 @@ class Shader {
    public:
     unsigned int m_id;
 
-    void use();
+    void use() const;
     Shader(unsigned int id);
     ~Shader();
 

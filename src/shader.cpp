@@ -9,7 +9,7 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-void Shader::use() { glUseProgram(this->m_id); }
+void Shader::use() const { glUseProgram(this->m_id); }
 
 std::string readFileToString(const std::string& filename) {
     // Open the file for reading. Use std::ios_base::binary for binary files

@@ -72,8 +72,8 @@ int main(void) {
     {
         ShaderBuilder sb, sb_shadow, sb_debug;
         try {
-            sb.m_vertex_src = readFileToString("res/shaders/vertex_blinn.glsl");
-            sb.m_fragment_src = readFileToString("res/shaders/fragment_blinn.glsl");
+            sb.m_vertex_src = readFileToString("res/shaders/vertex_shadow_2.glsl");
+            sb.m_fragment_src = readFileToString("res/shaders/fragment_shadow_2.glsl");
 
             sb_shadow.m_vertex_src = readFileToString("res/shaders/vertex_shadow.glsl");
             sb_shadow.m_fragment_src = readFileToString("res/shaders/fragment_shadow.glsl");
@@ -292,25 +292,26 @@ int main(void) {
             shader_shadow->set_mat4("lightSpaceMatrix", lightSpaceMatrix);
             render_scene(*shader_shadow, planeVAO, cubeVAO);
 
-            // plane
-            shader_shadow->set_mat4("model", glm::mat4(1.0f));
-            shader_shadow->set_mat4("model", glm::mat4(1.0f));
-
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
             // 2: Render scene as normal with shadowmapping using the depth map
             glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            shader_debug->use();
-            shader_debug->set_f("far_plane", far_plane);
-            shader_debug->set_f("near_plane", near_plane);
+            shader->use();
+            shader->set_mat4("view", camera.get_view_matrix());
+            shader->set_mat4("projection", glm::perspective(glm::radians(camera.m_zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f));
+            shader->set_mat4("lightSpaceMatrix", lightSpaceMatrix);
+            shader->set_vec3("lightPos", lightPos);
+            shader->set_vec3("viewPos", camera.m_position);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, depthMap);
+            shader->set_i("shadowMap", 0);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, tex.id);
+            shader->set_i("diffuseTexture", 1);
 
+            render_scene(*shader, planeVAO, cubeVAO);
 
-            glBindVertexArray(quadVAO);
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            glBindVertexArray(0);
             // shader->use();
             // shader->set_mat4("model", glm::mat4(1.0f));
             // shader->set_mat4("view", camera.get_view_matrix());

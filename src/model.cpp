@@ -10,7 +10,6 @@
 #include "glm/fwd.hpp"
 #include "shader.hpp"
 
-
 Model::Model(const std::string& file_path) : directory(file_path.substr(0, file_path.find_last_of('/'))) {
     load_model(file_path);
 }
@@ -24,7 +23,8 @@ void Model::draw(const Shader& shader) {
 void Model::load_model(const std::string& file_path) {
     Assimp::Importer importer;
 
-    const aiScene* scene = importer.ReadFile(file_path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    const aiScene* scene =
+        importer.ReadFile(file_path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         throw std::runtime_error(std::string("Assimp error: ") + importer.GetErrorString());
@@ -67,6 +67,9 @@ Mesh Model::process_mesh(aiMesh* mesh, const aiScene* scene) {
             vertex.tex_coord = glm::vec2(0.0f, 0.0f);
         }
 
+        const auto& vt = mesh->mTangents[i];
+        vertex.tangent = glm::vec3(vt.x, vt.y, vt.z);
+
         vertices.push_back(vertex);
     }
 
@@ -88,6 +91,9 @@ Mesh Model::process_mesh(aiMesh* mesh, const aiScene* scene) {
         std::vector<Texture> specular_maps =
             load_material_textures(material, aiTextureType_SPECULAR, "texture_specular");
         textures.insert(textures.end(), specular_maps.begin(), specular_maps.end());
+
+        std::vector<Texture> normal_maps = load_material_textures(material, aiTextureType_HEIGHT, "texture_normal");
+        textures.insert(textures.end(), normal_maps.begin(), normal_maps.end());
     }
 
     return Mesh(mesh->mName.C_Str(), vertices, indices, textures);

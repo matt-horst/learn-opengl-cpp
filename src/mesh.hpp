@@ -10,6 +10,7 @@
 struct Vertex {
     glm::vec3 position, normal;
     glm::vec2 tex_coord;
+    glm::vec3 tangent;
 };
 
 struct Texture {

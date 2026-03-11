@@ -98,14 +98,11 @@ int main(void) {
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
         glEnable(GL_MULTISAMPLE);
-        Texture diffuseMap = Texture("res/textures/brickwall.jpg", "");
-        Texture normalMap = Texture("res/textures/brickwall_normal.jpg", "");
 
-        // shader configuration
-        // --------------------
-        shader->use();
-        shader->set_i("diffuseMap", 0);
-        shader->set_i("normalMap", 1);
+        stbi_set_flip_vertically_on_load(true);
+
+        Model model {"res/models/backpack/backpack.obj"};
+
 
         glm::vec3 lightPos(0.5f, 1.0f, 0.3f);
 
@@ -155,11 +152,7 @@ int main(void) {
                                                   glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f))));
             shader->set_vec3("lightPos", lightPos);
             shader->set_vec3("viewPos", camera.m_position);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, diffuseMap.id);
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, normalMap.id);
-            renderQuad();
+            model.draw(*shader);
 
             shader->set_mat4("model", glm::scale(glm::translate(glm::mat4(1.0f), lightPos), glm::vec3(0.1f)));
             renderQuad();

@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <stdexcept>
@@ -73,14 +74,14 @@ int main(void) {
     {
         ShaderBuilder sb;
         try {
-            sb.m_vertex_src = readFileToString("res/shaders/vertex_normalmaplight.glsl");
-            sb.m_fragment_src = readFileToString("res/shaders/fragment_normalmaplight.glsl");
+            sb.m_vertex_src = readFileToString("res/shaders/vertex_parallax.glsl");
+            sb.m_fragment_src = readFileToString("res/shaders/fragment_parallax.glsl");
         } catch (const std::runtime_error& e) {
             std::cerr << e.what();
             return EXIT_FAILURE;
         }
 
-        std::unique_ptr<Shader> shader, shader_shadow, shader_debug;
+        std::unique_ptr<Shader> shader;
         try {
             shader = sb.build();
         } catch (const std::runtime_error& e) {
@@ -101,8 +102,16 @@ int main(void) {
 
         stbi_set_flip_vertically_on_load(true);
 
-        Model model {"res/models/backpack/backpack.obj"};
+        Texture diffuse {"res/textures/bricks2.jpg", ""};
+        Texture normalMap {"res/textures/bricks2_normal.jpg", ""};
+        Texture heightMap {"res/textures/bricks2_disp.jpg", ""};
 
+        // Model model {"res/models/backpack/backpack.obj"};
+
+        shader->use();
+        shader->set_i("texture_diffuse1", 0);
+        shader->set_i("texture_normal1", 1);
+        shader->set_i("texture_height1", 2);
 
         glm::vec3 lightPos(0.5f, 1.0f, 0.3f);
 
@@ -152,7 +161,16 @@ int main(void) {
                                                   glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f))));
             shader->set_vec3("lightPos", lightPos);
             shader->set_vec3("viewPos", camera.m_position);
-            model.draw(*shader);
+            shader->set_f("height_scale", 0.1f);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, diffuse.id);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, normalMap.id);
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, heightMap.id);
+
+            renderQuad();
+
 
             shader->set_mat4("model", glm::scale(glm::translate(glm::mat4(1.0f), lightPos), glm::vec3(0.1f)));
             renderQuad();

@@ -102,9 +102,9 @@ int main(void) {
 
         stbi_set_flip_vertically_on_load(true);
 
-        Texture diffuse {"res/textures/bricks2.jpg", ""};
-        Texture normalMap {"res/textures/bricks2_normal.jpg", ""};
-        Texture heightMap {"res/textures/bricks2_disp.jpg", ""};
+        Texture diffuse {"res/textures/wood.png", ""};
+        Texture normalMap {"res/textures/toy_box_normal.png", ""};
+        Texture heightMap {"res/textures/toy_box_disp.png", ""};
 
         // Model model {"res/models/backpack/backpack.obj"};
 
